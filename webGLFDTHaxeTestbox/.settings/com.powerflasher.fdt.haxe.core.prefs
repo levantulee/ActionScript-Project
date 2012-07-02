@@ -1,0 +1,5 @@
+#Sat Nov 26 18:22:26 SGT 2011
+eclipse.preferences.version=1
+hxmlPath=compile.hxml
+sdkPath=/Applications/FDT 5.app/Contents/FDT5/haXe/haxe-2.08-osx
+sdkPathOverride=false

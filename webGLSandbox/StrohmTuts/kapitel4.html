@@ -1,0 +1,167 @@
+<html>
+
+<head>
+<title>WebGL Tutorial - Beispiel zu Kapitel 4 : Animation </title>
+<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+
+<script type="text/javascript" src="sylvester.js"></script>
+<script type="text/javascript" src="glpsutilskap4.js"></script>
+ <script type="text/javascript" src="webgl-utils.js"></script>
+     
+<script id="shader-fs" type="x-shader/x-fragment">
+  //this ifdef is a temporary work-around for the (upcoming) strict shader validator
+  #ifdef GL_ES
+  precision highp float;
+  #endif
+  varying vec4 vColor;
+	void main(void)
+	{
+		gl_FragColor = vColor;
+	}
+</script>
+
+<script id="shader-vs" type="x-shader/x-vertex">
+  attribute vec3 aVertexPosition;
+  attribute vec4 aVertexColor;
+
+  uniform mat4 uMVMatrix;
+  uniform mat4 uPMatrix;
+  varying vec4 vColor;
+  void main(void)
+  {
+    gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+	vColor = aVertexColor;
+  }
+</script>
+
+
+<script type="application/x-javascript">
+
+  
+  
+  //BEGINN globale Variablen:
+  
+  var gl; //Das wichtigste überhaupt: das globale gl-Objekt
+  var shaderProgram;
+  var vertexPositionAttribute;
+  var pMatrix;   // Die Projektionsmatrix.
+  var mvMatrix;  //ModelView Matrix
+  
+  var fZnear =0.1;  //Nah-Ebene 
+  var fZfar  =100.0;  //Fernebene
+
+  var triangleVertexPositionBufferID;  //Die Nummer (ID), die der Puffer für die 3 Dreieckspunkte hat.
+  var triangleVertexColorBufferID;     //Die Nummer (ID), die der Puffer für die 3 Farben der Dreieckspunkte hat.
+  
+  var fAnimationXPos   = 0.0;
+  var fAnimationYAngle = 0.0;
+  var fTranslationTimeArg = 0.0;
+  
+  //ENDE globale Variablen /////////////////////////////7
+  
+
+  function initBuffers()  {
+  
+    triangleVertexPositionBufferID = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, triangleVertexPositionBufferID);
+    var vertices = [
+         0.0,  1.0,  0.0,  //x y z des ersten Dreieckpunktes
+        -1.0, -1.0,  0.0,  //x y z des zweiten Dreieckpunktes
+         1.0, -1.0,  0.0   //x y z des dritten Dreieckpunktes
+    ];
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+    triangleVertexPositionBufferID.itemSize = 3;  //Drei Koordinaten pro Elememt
+    triangleVertexPositionBufferID.numItems = 3;  //Drei Punkte im Dreieck
+  
+    triangleVertexColorBufferID = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER,triangleVertexColorBufferID);
+	var colors = [
+	   1.0, 0.0, 0.0, 1.0,
+	   0.0, 1.0, 0.5, 1.0,
+	   0.0, 0.0, 1.0, 1.0,
+	];
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
+	triangleVertexColorBufferID.itemSize = 4;
+	triangleVertexColorBufferID.numItems = 3;
+  
+  }
+
+
+  function drawScene()  {
+  
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    pMatrix = createPerspectiveMatrix(45, 1.0, fZnear, fZfar); //45° Öffnungswinkel der Kamera, Seitenverhältnis 1.0, nächster sichtbarer Punkt 0.1m, fernster sichtbarer Punkt 100.0 m
+    mvMatrix =Matrix.I(4);
+	//Model verschieben:
+	//1. : Das Dreieck wird auf der Z-Achse verschoben, damit es im Sichtfeld ist (Siehe Kapitel 2)
+    mvMatrix = mvMatrix.x(create3DTranslationMatrix(Vector.create([0.0, 0.0, -5.0])).ensure4x4());
+	//2. : Die Position des Dreiecks auf der x-Achse wird mit der Variablen fAnimationXPos variiert:
+	mvMatrix = mvMatrix.x(create3DTranslationMatrix(Vector.create([fAnimationXPos, 0.0, 0.0])).ensure4x4());
+	//3. : Der Rotationswinkel des Dreiecks wird mit der Variablen fAnimationYAngle in die ModelView-Matrix eingebaut.
+	mvMatrix = mvMatrix.x(Matrix.Rotation(fAnimationYAngle*Math.PI / 180.0, Vector.create([0,1,0])).ensure4x4());
+	
+    
+	gl.bindBuffer(gl.ARRAY_BUFFER, triangleVertexColorBufferID);
+    gl.vertexAttribPointer(vertexColorAttribute, triangleVertexColorBufferID.itemSize, gl.FLOAT, false, 0, 0);
+ 
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, triangleVertexPositionBufferID);
+ 	gl.vertexAttribPointer(vertexPositionAttribute, triangleVertexPositionBufferID.itemSize, gl.FLOAT, false, 0, 0);
+    setMatrixUniforms();
+    gl.drawArrays(gl.TRIANGLES, 0, triangleVertexPositionBufferID.numItems);
+  }
+
+  function nextFrame()  {
+  
+    fAnimationYAngle+=85; // Pro Bild wird das Dreieck um 5 Grad weitergedreht
+	fTranslationTimeArg+=7; 
+	//fAnimationXPos=Math.cos(fTranslationTimeArg*Math.PI/180.0); //Damit das Dreieck auch bei längerer Darstellung der Szene nicht aus dem Bild wandert, lasse ich es mit der cos()-Funktion hin- und her wandern.
+	
+  }
+
+  function webGLStart()  {
+    
+    initGL();
+    initShaders();
+
+    gl.clearColor(0.0, 0.0, 0.0, 1.0); // Hintergrund löschen in Farbe 0
+
+    gl.clearDepth(1.0);         // Die gesamte Tiefe des Bildes soll gelöscht werden
+
+    gl.enable(gl.DEPTH_TEST);   // Bei der Darstellung sollen Objekte mit geringerem Abstand zur Kamera
+    gl.depthFunc(gl.LEQUAL);    //  solche mit größerem Abstand überdecken
+
+    initBuffers();
+	setInterval(nextFrame,40); // Die wichtigste Zeile für die Animation: Die Funtkion nextFrame wird immer wieder wiederholt aufgerufen.
+    meineCanvas = document.getElementById("WebGL-canvas");
+    var renderLoop = function() {
+        WebGLUtils.requestAnimationFrame(meineCanvas, renderLoop);
+        drawScene();
+    };
+    renderLoop();
+    
+  }
+
+
+
+</script>
+
+
+</head>
+
+
+<body onload="webGLStart()">
+  <a href="webgltutorial4.html">&lt;&lt; Zurück zu Kapitel 4</a><br />
+
+  <canvas id="WebGL-canvas" style="border: none;" width="500" height="500"></canvas>
+
+  <br/>
+  <a href="webgltutorial4.html">&lt;&lt; Zurück zu Kapitel 4</a><br />
+
+
+<br><br>
+
+</body>
+
+</html>

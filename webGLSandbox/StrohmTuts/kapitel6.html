@@ -1,0 +1,268 @@
+<html>
+
+<head>
+<title>WebGL Tutorial - Beispiel zu Kapitel 6 : Texturen </title>
+<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1" />
+
+<script type="text/javascript" src="sylvester.js"></script>
+<script type="text/javascript" src="glpsutilskap6.js"></script>
+
+<script id="shader-fs" type="x-shader/x-fragment">
+  //this ifdef is a temporary work-around for the (upcoming) strict shader validator
+  #ifdef GL_ES
+  precision highp float;
+  #endif
+  varying vec2 vTextureCoord;
+  
+  uniform sampler2D uSampler;
+
+  void main(void)
+  {
+    gl_FragColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
+  }
+</script>
+
+<script id="shader-vs" type="x-shader/x-vertex">
+  attribute vec3 aVertexPosition;
+  attribute vec2 aTextureCoord;
+
+  uniform mat4 uMVMatrix;
+  uniform mat4 uPMatrix;
+  varying vec2 vTextureCoord;
+  void main(void)
+  {
+    gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+	vTextureCoord = aTextureCoord;
+  }
+</script>
+
+<script type="application/x-javascript">
+  function Point(x, y) {
+    this.x = x;
+    this.y = y;
+  }
+  //BEGINN globale Variablen:
+  
+  var gl; //Das wichtigste überhaupt: das globale gl-Objekt
+  var shaderProgram;
+  var vertexPositionAttribute;
+  var textureCoordAttribute;         //Die Nummer (ID), die das Texturkoordinaten-Attribut im Shader hat.
+  var pMatrix;   // Die Projektionsmatrix.
+  var mvMatrix;  //ModelView Matrix
+  
+  var fZnear =0.1;  //Nah-Ebene 
+  var fZfar  =100.0;  //Fernebene
+
+  var triangleVertexPositionBufferID;  //Die Nummer (ID), die der Puffer für die 3 Dreieckspunkte hat.
+  var pyramideTextureCoordBufferID;
+  
+  var myTexture;
+  var myImage;
+   
+  var g_fAnimationXPos   = 0.0;
+  var g_fAnimationYAngle = 0.0;
+  var g_fAnimationXAngle = 0.0;
+  var g_fTranslationTimeArg = 0.0;
+  var g_fZZoomlevel = -2.0;
+  var g_fTranslatX = 0.0;
+  var g_fTranslatY = 0.0;
+  
+  var g_lastpoint = new Point(0,0);
+  var g_bMousedown=false;
+  var g_DrawInterval = 0;
+   
+  //ENDE globale Variablen /////////////////////////////7
+ 
+ function initBuffers()  {
+    triangleVertexPositionBufferID = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, triangleVertexPositionBufferID);
+    var vertices = [
+	  //Vorderseite:
+         0.0,  1.0,  0.0,  //x y z des ersten Dreieckpunktes
+        -1.0, -1.0,  1.0,  //x y z des zweiten Dreieckpunktes
+         1.0, -1.0,  1.0,   //x y z des dritten Dreieckpunktes
+	  //rechte Seite:
+         0.0,  1.0,  0.0,  //x y z des ersten Dreieckpunktes
+         1.0, -1.0,  1.0,  //x y z des zweiten Dreieckpunktes
+         1.0, -1.0,  -1.0,   //x y z des dritten Dreieckpunktes
+	  //Rueckseite:
+         0.0,  1.0,  0.0,  //x y z des ersten Dreieckpunktes
+         1.0, -1.0,  -1.0,  //x y z des zweiten Dreieckpunktes
+         -1.0, -1.0,  -1.0,   //x y z des dritten Dreieckpunktes
+	  //linke Seite:
+         0.0,  1.0,  0.0,  //x y z des ersten Dreieckpunktes
+         -1.0, -1.0,  -1.0,  //x y z des zweiten Dreieckpunktes
+         -1.0, -1.0,  1.0,   //x y z des dritten Dreieckpunktes
+	  
+    ];
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+    triangleVertexPositionBufferID.itemSize = 3;  //Drei Koordinaten pro Elememt
+    triangleVertexPositionBufferID.numItems = 12;  //Drei Punkte im Dreieck
+  
+    //TEXTURENKOORDINATEN:
+    pyramideTextureCoordBufferID = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, pyramideTextureCoordBufferID);
+	var faPyramideTextureCoord = [
+	  // Vorderseite
+      0.52, 0.05,
+      0.60, 0.62,
+      1.0, 0.62,
+      0.52, 0.05,
+      0.60, 0.62,
+      1.0, 0.62,
+      0.52, 0.05,
+      0.60, 0.62,
+      1.0, 0.62,
+      0.52, 0.05,
+      0.60, 0.62,
+      1.0, 0.62,
+   	];
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(faPyramideTextureCoord), gl.STATIC_DRAW);
+    gl.vertexAttribPointer(textureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
+	pyramideTextureCoordBufferID.itemSize = 2;
+	pyramideTextureCoordBufferID.numItems = 12;
+  }
+  
+  function initTexture(sFilename)  {
+    myTexture = gl.createTexture();
+    myTexture.image = new Image();
+    myTexture.image.onload = function()    {
+      gl.bindTexture(gl.TEXTURE_2D, myTexture);
+      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, myTexture.image);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+      gl.bindTexture(gl.TEXTURE_2D, null);
+	  
+	  drawScene();
+    }
+
+    myTexture.image.src = sFilename;
+  }
+  
+  function drawScene()  {
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    pMatrix = createPerspectiveMatrix(45, 1.0, fZnear, fZfar); //45° Öffnungswinkel der Kamera, Seitenverhältnis 1.0, nächster sichtbarer Punkt 0.1m, fernster sichtbarer Punkt 100.0 m
+    mvMatrix =Matrix.I(4);
+	//Model verschieben:
+	//1. : Das Dreieck wird auf der Z-Achse verschoben, damit es im Sichtfeld ist (Siehe Kapitel 2)
+    mvMatrix = mvMatrix.x(create3DTranslationMatrix(Vector.create([g_fTranslatX, g_fTranslatY, g_fZZoomlevel])).ensure4x4());
+	//2. : Die Position des Dreiecks auf der x-Achse wird mit der Variablen fAnimationXPos variiert:
+	mvMatrix = mvMatrix.x(create3DTranslationMatrix(Vector.create([g_fAnimationXPos, 0.0, 0.0])).ensure4x4());
+	//3. : Der Rotationswinkel des Dreiecks wird mit der Variablen fAnimationYAngle in die ModelView-Matrix eingebaut.
+	mvMatrix = mvMatrix.x(Matrix.Rotation(g_fAnimationYAngle*Math.PI / 180.0, Vector.create([0,1,0])).ensure4x4());
+	//4. : Der Rotationswinkel des Dreiecks wird mit der Variablen fAnimationXAngle in die ModelView-Matrix eingebaut.
+	mvMatrix = mvMatrix.x(Matrix.Rotation(g_fAnimationXAngle*Math.PI / 180.0, Vector.create([1,0,0])).ensure4x4());
+   
+	gl.bindBuffer(gl.ARRAY_BUFFER,pyramideTextureCoordBufferID);
+	gl.vertexAttribPointer(textureCoordAttribute,pyramideTextureCoordBufferID.itemSize, gl.FLOAT, false, 0,0);
+	
+    gl.bindBuffer(gl.ARRAY_BUFFER, triangleVertexPositionBufferID);
+ 	gl.vertexAttribPointer(vertexPositionAttribute, triangleVertexPositionBufferID.itemSize, gl.FLOAT, false, 0, 0);
+    
+	gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, myTexture);
+    
+	setMatrixUniforms();
+    gl.drawArrays(gl.TRIANGLES, 0, triangleVertexPositionBufferID.numItems);
+  }
+
+  function webGLStart()  {
+    initGL();
+    initShaders();
+    initTexture("texpyra.jpg");
+	
+	var canvas = document.getElementById("WebGL-canvas");
+	canvas.onmousedown=mouseDown;
+    canvas.onmouseup=mouseUp;
+    canvas.onmousemove=mouseMove;
+   	canvas.addEventListener('DOMMouseScroll', mouseWheel, false);
+    document.addEventListener("keydown", keyDown, false);
+
+    gl.clearColor(1.0, 1.0, 1.0, 1.0); // Hintergrund löschen in Farbe weiß
+
+    gl.clearDepth(1.0);         // Die gesamte Tiefe des Bildes soll gelöscht werden
+
+    gl.enable(gl.DEPTH_TEST);   // Bei der Darstellung sollen Objekte mit geringerem Abstand zur Kamera
+    gl.depthFunc(gl.LEQUAL);    //  solche mit größerem Abstand überdecken
+
+    initBuffers();
+	//setInterval(drawScene,40); // Die wichtigste Zeile für die Animation: Die Funtkion nextFrame wird immer wieder wiederholt aufgerufen.
+	drawScene();
+  }
+
+  function mouseWheel(wheelEvent)  {
+     if(wheelEvent.detail>0)
+       g_fZZoomlevel += 0.3;
+	 else
+	   g_fZZoomlevel -= 0.3;
+	 drawScene();
+  }
+  function mouseMove(einEvent)  {
+     if(g_bMousedown== true)    {
+	
+      g_fAnimationYAngle+=(einEvent.clientX-g_lastpoint.x);
+      g_fAnimationXAngle+=(einEvent.clientY-g_lastpoint.y);
+	  //drawScene();
+    }   
+    g_lastpoint.x=einEvent.clientX;
+    g_lastpoint.y=einEvent.clientY;
+  }
+  
+  function mouseDown(einEvent)   {
+    g_bMousedown=true;
+	g_DrawInterval = setInterval(drawScene,40);
+  }
+  
+  function mouseUp(einEvent)   {
+    g_bMousedown=false;
+	clearInterval(g_DrawInterval);
+  }
+ 
+  function keyDown(einEvent)  {
+ 	switch(einEvent.keyCode)	{
+    case 37:  //  cursor links
+	  g_fTranslatX-=0.2;
+	break;
+	case 38:  //  cursor hoch
+	  g_fTranslatY+=0.2;
+	break;
+	case 39:  //  cursor rechts
+	  g_fTranslatX+=0.2;
+	break;
+	case 40:  //  cursor runter
+	  g_fTranslatY-=0.2;
+	break;
+	default:
+	break;
+	}
+	drawScene();
+  }
+</script>
+</head>
+<body bgcolor="bbbbbb" onload="webGLStart()">
+  <a href="webgltutorial6.html">&lt;&lt; Zurück zu Kapitel 6</a><br />
+  <table>
+  <tr>
+  <td>
+  <canvas id="WebGL-canvas" style="border: none;" width="500" height="500"></canvas>
+  </td>
+  <td>
+  <h2>Chichen Itza Pyramide der Kukulcan (Mexico)</h2>
+  Halten und Ziehen mit linker Maustaste rotiert das 3D-Objekt. <br>
+  Das Mausrad wird zum Zoomen verwendet. <br>
+  Die Pfeiltasten bewegen das Objekt in der Ebene parallel zum Bilschirm<br>
+  <br>
+  <i>Hold mouse button and drag to rotate 3D-object.<br>
+  Use mouse wheel to zoom. Use cursorkeys to move object.</i>
+  <br/>
+  <img src="texpyra.jpg" alt="Quelle für Textur">
+  </td>
+  </tr>
+  </table>
+  <br/>
+  <a href="webgltutorial6.html">&lt;&lt; Zurück zu Kapitel 6</a><br />
+<br><br>
+</body>
+</html>

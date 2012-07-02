@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
+        <title>WebGL-Beispiel 3 : Farbe</title>
+    <script src="webgl-utils.js" ></script>
+    <script src="gl-matrix.js" ></script>
+    <script type="text/javascript">
+    "use strict";
+    /*global window */  // tells jslint that 'window' is defined!
+    /*global WebGLUtils */  // tells jslint that 'WebGLUtils' is defined!
+    /*global mat4 */  // tells jslint that 'mat4' is defined!
+    /*global Float32Array */  // tells jslint that 'Float32Array' is defined!
+
+    var WebGLApplication = {};
+
+	/**
+	* globales Core-Objekt, dass gekapselten Zugriff aus zentrale 
+	* Properties gewährt.
+	*/
+    WebGLApplication.Core = (function () {
+        var members = {
+            // Zeiger zum WebGLProgram-Objekt
+            programObject: 0,
+            canvas: null,
+            gl: null,
+            pMatrix: null,
+            model: null,
+            shaderVarLocations: null
+        };
+        return {
+            getMember: function (key) {
+                if (typeof members[key] !== 'undefined') {
+                    return members[key];
+                } else {
+                    return false;
+                }
+            },
+            setMember: function (key, value) {
+                members[key] = value;
+            }
+        };
+    }());
+
+	/**
+	* Beschreibt ein einfachstes 3D-Modell aus Raumpunkten und 
+	* zugehörigen Farbwerten.
+	*/
+    WebGLApplication.Model = function () {
+        this.vertices = null;
+        this.verticesBuffer = null;
+        this.colors = null;
+        this.colorBuffer = null;
+        this.mvMatrix = null;
+    };
+
+    /**
+	* Speichert alle Adressen der Variablen, die zwischen JavaScript und
+	* den Shadern ausgetauscht werden.
+	*/
+    WebGLApplication.ShaderVarLocations = function () {
+        this.vertexAttribute = null;
+        this.colorAttribute = null;
+		this.mvMatrixUniform = null;
+		this.pMatrixUniform = null;
+        this.update = function (gl, programObject) {
+            this.vertexAttribute = gl.getAttribLocation(programObject, "av4Position");
+            this.colorAttribute = gl.getAttribLocation(programObject, "av4VertexFarbe");
+            this.mvMatrixUniform = gl.getUniformLocation(programObject, "um4ModelviewMatrix");
+			this.pMatrixUniform = gl.getUniformLocation(programObject, "um4PerspektivMatrix");
+        };
+    };
+
+    /**
+	* Initialisiert die WebGL-Umgebung und erstellt das Shader-Program objekt
+	* @param {canvas} canvas die Zeichenfläche innerhalb der HTML-Seite.
+    * @param {String} vertexShaderString der Quellcode des VertexShaders
+    * @param {String} fragmentShaderString der Quellcode des FragmentShaders
+    * @param {String} eine ID aus dem DOM, in die ggf. Fehlermeldungen geschrieben werden
+    * @return {WebGLContex} der erzeugte WebGL-Context	
+	*/
+    WebGLApplication.init = function (canvas, vertexShaderString, fragmentShaderString, statusAusgabeDOM_ID) {
+        var gl, programObject, compilerErfolg, fShader, vShader, webGLBrowserStatus, linkerErfolg;
+        this.Core.setMember("canvas", canvas);
+        try {
+            this.Core.setMember("gl", WebGLUtils.setupWebGL(canvas));
+        } catch (e) { }
+
+        if (!this.Core.getMember("gl")) {
+            webGLBrowserStatus = window.document.getElementById(statusAusgabeDOM_ID);
+            webGLBrowserStatus.innerHTML = "Dein Browser unterstützt WebGL (noch) nicht. Die <a href=\"http://webgl.peter-strohm.de/webgltutorial0.php\">Liste der Browser mit WebGL-Support<\/a> kann Dir weiterhelfen.";
+        }
+
+        gl = this.Core.getMember("gl");
+        programObject = gl.createProgram();
+        this.Core.setMember("programObject", programObject);
+
+        vShader = gl.createShader(gl.VERTEX_SHADER);    // Das Vertex-Shader-Objekt wird angelegt
+        gl.shaderSource(vShader, vertexShaderString);         //          - mit seinem Quelltext verknüpft
+        gl.compileShader(vShader);                           //          - kompiliert
+        // Check the compile status
+        compilerErfolg = gl.getShaderParameter(vShader, gl.COMPILE_STATUS);
+        if (!compilerErfolg) {
+            window.alert("Fehler beim erstellen des VertexShaders : \n\n" + gl.getShaderInfoLog(vShader));
+            gl.deleteShader(vShader);
+            return false;
+        } else {
+            gl.attachShader(programObject, vShader);
+        }
+
+        fShader = gl.createShader(gl.FRAGMENT_SHADER);
+        gl.shaderSource(fShader, fragmentShaderString);
+        gl.compileShader(fShader);
+        compilerErfolg = gl.getShaderParameter(fShader, gl.COMPILE_STATUS);
+        if (!compilerErfolg) {
+            window.alert("Fehler beim erstellen des FragmentShaders : \n\n" + gl.getShaderInfoLog(fShader));
+            gl.deleteShader(fShader);
+            return false;
+        } else {
+            gl.attachShader(programObject, fShader);
+        }
+
+        gl.linkProgram(programObject);                  // Das Shader-Program-Objekt ist vollständig und muss gelinkt werden.
+        // Fehlerüberprüfung: Hat das Linken geklappt ?:
+        linkerErfolg = gl.getProgramParameter(programObject, gl.LINK_STATUS);
+        if (!linkerErfolg) {
+            window.alert("Fehler beim Linken des ShaderPrograms : \n\n" + gl.getProgramInfoLog(programObject));
+            gl.deleteProgram(programObject);
+            return false;
+        }
+        gl.useProgram(programObject);                   // Da theoretisch mehrere Shader-Program-Objekte möglich sind, muss 
+                                                        // angegeben werden, welches benutzt werden soll.
+        return gl;
+    };
+
+    /**
+	* Erstellt eine Perspektivische Projektionsmatrix und übergibt sie an die Shader
+	* @param zNah {double} Z-Koordinate der nahen Begrenzungsebene des Sichtfelds
+	* @param zFern {double} Z-Koordinate der fernen Begrenzungsebene des Sichtfelds
+	* @param zFern {double} Öffnungswinkel des Sichtfelds in Grad
+	*/
+    WebGLApplication.setupViewpoint = function (zNah, zFern, sichtfeldOeffnungswinkel) {
+        var
+            aspektVerhaeltnis,
+            pMatrix,
+			canvas;
+        // Jetzt wird die Perspektivmatrix angelegt:
+        // Die Perspektivmatrix sorgt dafür, dass die Raumkoordinaten der Vertizes auf der zweidimensionalen Webseite 
+        // so dargestellt werden, dass die Tiefenwirkung entsteht.
+		canvas = this.Core.getMember("canvas");
+        aspektVerhaeltnis = canvas.width / canvas.height;
+        pMatrix = mat4.perspective(sichtfeldOeffnungswinkel, aspektVerhaeltnis, zNah, zFern);
+        this.Core.getMember("gl").uniformMatrix4fv(this.Core.getMember("shaderVarLocations").pMatrixUniform, false, pMatrix);
+
+    };
+
+    /**
+	* Erzeugt Daten eines 3D-Modells (hier nur ein Dreieck) und übergibt diese an die Shader
+	*/
+	WebGLApplication.bufferModel = function () {
+        var
+            gl,
+            Model,
+            shaderVarLocations;
+
+        gl = this.Core.getMember("gl");
+        Model = new this.Model();
+        this.Core.setMember("Model", Model);
+
+        if (this.Core.getMember("shaderVarLocations") === null) {
+            shaderVarLocations = new WebGLApplication.ShaderVarLocations(gl);
+            shaderVarLocations.update(gl, this.Core.getMember("programObject"));
+            this.Core.setMember("shaderVarLocations", shaderVarLocations);
+        }
+
+		// Ein Array mit den Koordinaten, der Eckpunkte des Dreiecks das dargestellt wird.
+        Model.vertices = new Float32Array([
+            0.0, 1.0, 0.0,  //x y z des ersten Dreieckpunktes
+            -1.0, -1.0, 0.0,  //x y z des zweiten Dreieckpunktes
+            1.0, -1.0, 0.0]);   //x y z des dritten Dreieckpunktes
+        Model.vertexBuffer = gl.createBuffer();                // ein WebGL-Buffer-Objekt wird erzeugt
+        gl.bindBuffer(gl.ARRAY_BUFFER, Model.vertexBuffer);    // ...und als aktives Objekt gesetzt
+        gl.bufferData(gl.ARRAY_BUFFER, Model.vertices, gl.STATIC_DRAW);  // die Arraydaten werden an den aktiven Puffer übergeben
+
+        Model.colors = new Float32Array([
+            1.0, 0.0, 0.0, 1.0, //rot
+            0.0, 1.0, 0.0, 1.0, //grün
+            0.0, 0.0, 1.0, 1.0]); //blau
+
+        Model.colorBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, Model.colorBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, Model.colors, gl.STATIC_DRAW);
+
+        Model.mvMatrix = mat4.identity();
+        mat4.translate(Model.mvMatrix, [0.0, 0.0, -3.0]);
+        gl.uniformMatrix4fv(shaderVarLocations.mvMatrixUniform, false, Model.mvMatrix);
+    };
+
+    /**
+	* Löscht den Bildschirm und zeichnet das aktive Modell neu.
+	* @param gl {WebGLContext} aktiver WebGLContext
+	*/
+    WebGLApplication.drawScene = function (gl) {
+        var shaderVarLocations,
+            Model;
+        shaderVarLocations = this.Core.getMember("shaderVarLocations");
+        Model = this.Core.getMember("Model");
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);                     // RGB-Alpha Farbe zum Löschen des Hintergrundes
+        gl.clear(gl.COLOR_BUFFER_BIT);                         // Hintergrund löschen
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, Model.colorBuffer);
+        gl.vertexAttribPointer(shaderVarLocations.colorAttribute, 4, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(shaderVarLocations.colorAttribute);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, Model.vertexBuffer);    // ...und als aktives Objekt gesetzt
+        gl.vertexAttribPointer(shaderVarLocations.vertexAttribute, 3, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(shaderVarLocations.vertexAttribute);
+
+        gl.drawArrays(gl.TRIANGLES, 0, 3);
+    };
+
+    /**
+	* Zentrale Einstiegsstelle des WebGL-Programms. Wird nach dem Laden der HTML-Seite 
+	* ausgeführt und ruft synchron alle weiteren Methoden auf.
+	*/
+	function meinWebGLStart() {
+        var
+            meineCanvas,
+            gl,
+            fragmentShaderQuellcode,
+            vertexShaderQuellcode;
+
+        meineCanvas = window.document.getElementById("meineWebGLCanvas");  // canvas ist die "Leinwand" innerhalb der HTML Seite, auf die gezeichnet werden kann
+
+		vertexShaderQuellcode =
+            'attribute vec4 av4Position; \n\
+             attribute vec4 av4VertexFarbe; \n\
+             uniform mat4 um4PerspektivMatrix; \n\
+             uniform mat4 um4ModelviewMatrix; \n\
+             varying vec4 vFarbe; \n\
+             void main() \n\
+             { \n\
+                 gl_Position = um4PerspektivMatrix * um4ModelviewMatrix * av4Position; \n\
+                 vFarbe = av4VertexFarbe; \n\
+             } \n';
+
+		fragmentShaderQuellcode =
+            'precision mediump float;\n\
+             varying vec4 vFarbe; \n\
+             void main()  \n\
+             {     \n\
+                 gl_FragColor = vFarbe;\n\
+             } \n';
+
+        gl = WebGLApplication.init(meineCanvas, vertexShaderQuellcode, fragmentShaderQuellcode, "webGLBrowserStatus");
+
+        WebGLApplication.bufferModel();
+        WebGLApplication.setupViewpoint(0.1, 100.0, 90);
+
+        WebGLApplication.drawScene(gl);
+    }
+
+    /**
+	* Event-Zuordnung: Sobald die Seite geladen ist, wird meinWebGLStart() ausgeführt.
+	*/
+	window.onload = function () {
+        meinWebGLStart();
+    };
+
+    </script>
+    
+    </head>
+    <body>
+        <noscript><h2>JavaScript ist in Deinem Browser deaktiviert oder wird nicht unterstützt. Ohne JavaScript kann diese Seite nicht korrekt dargestellt werden.</h2>   </noscript>
+        <p id="webGLBrowserStatus"></p>
+        <canvas id="meineWebGLCanvas" width="500" height="500"></canvas> 
+    </body>
+</html>
+
