@@ -1,4 +1,4 @@
-package BlittingEngine 
+package IsoGameEngine 
 {
 	import flash.display.Sprite;
 	
@@ -13,6 +13,8 @@ package BlittingEngine
 		public var foreground:Sprite
 		
 		public var all_Layers:Sprite;
+		
+		
 		
 		public function Scene() 
 		{

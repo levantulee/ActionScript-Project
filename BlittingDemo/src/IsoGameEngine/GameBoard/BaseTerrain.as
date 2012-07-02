@@ -1,4 +1,4 @@
-package GameBoard 
+package IsoGameEngine.GameBoard 
 {
 	import flash.geom.Point;
 	
@@ -38,6 +38,8 @@ package GameBoard
 		
 		private function init():void
 		{
+			SetFieldDimensions();
+			
 			/*for ( var i:int = 0; i < Math.ceil(mapWidth/10); i++) {
 				for ( var j:int = 0; j < Math.ceil(mapHeight/10); j++) {
 					var background:_BG_Grass10x10 = new _BG_Grass10x10();
@@ -49,16 +51,13 @@ package GameBoard
 				}
 			}*/
 			
-			
-			
-			
-			
-			
-			
+			//Graphics Holder Array for All Graphics Objects placed in main graphics layer
 			boardA = new Array();
-			for ( var row:int = 0; row < mapWidth; row++) {
-				var columnA:Array = new Array();
+			for ( var width:int = 0; width < mapWidth; width++) {
+				
+				boardA.push(new Array(mapHeight));
 			}
+			Globals.mainLayerGraphicsA = boardA;
 			
 			//TO center the grid onf the overall map
 			var startPosXShift:Number = tileWidth/2;
@@ -71,15 +70,12 @@ package GameBoard
 					newTile.x +=  i * tileWidth / 2 + j * tileWidth / 2 + startPosXShift;
 					newTile.y -=  i * tileHeight / 2 + j * tileHeight / 2 - startPosYShift - gridHeight*tileHeight/2;
 
-					Globals.engine._AddToScene(newTile);
-					
-					
-					
+					Globals.engine._AddToBackground(newTile);
 				}
 				startPosYShift +=  tileHeight;
 			}
 			
-			SetFieldDimensions();
+			
 			
 			
 			//add trees to each corner
@@ -97,7 +93,7 @@ package GameBoard
 			Globals.engine._AddToScene(tree4);*/
 		}
 		
-		var boardDimensions:Point = new Point();
+		private var boardDimensions:Point = new Point();
 		private function SetFieldDimensions():void
 		{
 			
@@ -110,11 +106,17 @@ package GameBoard
 			
 			Globals.boardDimensions = boardDimensions;
 			
+			Globals.gridDimensions = new Point(gridWidth,gridHeight);
+
 			Globals.mapCenter = new Point(mapWidth/2,mapHeight/2);
 			
 			var tileDimensions:Point = new Point(tileWidth,tileHeight);
 			Globals.tileDimenstions = tileDimensions;
 		}
+		
+		
+		
+		
 		
 		
 		

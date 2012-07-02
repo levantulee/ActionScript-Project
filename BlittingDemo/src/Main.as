@@ -1,11 +1,11 @@
 package 
 {
-	import BlittingEngine.Camera;
-	import BlittingEngine.GraphicsEngine;
+	import IsoGameEngine.Camera;
+	import IsoGameEngine.GraphicsEngine;
 	
-	import Editor.MapEditor;
+	import IsoGameEngine.Editor.MapEditor;
 	
-	import GameBoard.BaseTerrain;
+	import IsoGameEngine.GameBoard.BaseTerrain;
 	
 	import flash.display.Sprite;
 	import flash.events.Event;
@@ -14,7 +14,7 @@ package
 	 * ...
 	 * @author Simon
 	 */
-	[SWF(width="800", height="600", framerate="30", backgroundColor="#AAAAAA")]
+	[SWF(width="800", height="600", framerate="60", backgroundColor="#AAAAAA")]
 
 	public class Main extends Sprite 
 	{
@@ -33,7 +33,7 @@ package
 			Globals.engine = engine;
 			
 			
-			var terrain:BaseTerrain = new BaseTerrain(50, 50, 25, 50, 4,4);
+			var terrain:BaseTerrain = new BaseTerrain(20, 20, 25, 50, 4,4);
 			
 			var camera:Camera = new Camera();
 			
