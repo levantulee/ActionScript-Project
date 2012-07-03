@@ -54,6 +54,8 @@ package IsoGameEngine.Editor
 		{
 			//FollowMouse
 			var placementPosition:Point = Globals.engine.snapMouseFollowToTile();
+			var placementPosition:Point = Globals.engine.snapMouseFollowToTile();
+			
 			//Snap Pos To Grid
 			newItem.setPosition(placementPosition.x,placementPosition.y);
 		}

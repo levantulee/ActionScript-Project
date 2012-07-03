@@ -66,6 +66,8 @@ package IsoGameEngine
 			Globals.mainLayerGraphicsA[item.tilePos.x][item.tilePos.y] = item;
 			trace('item.tilePos',item.tilePos);
 			//trace('test',Globals.mainLayerGraphicsA[1][20]);
+			item.graphic.x -= Globals.engine.scene.all_Layers.x;
+			item.graphic.y -= Globals.engine.scene.all_Layers.y;
 			scene.main.addChild(item.graphic);
 			sortMainLayerObjects();
 		}
@@ -196,7 +198,7 @@ package IsoGameEngine
 		{
 			var Scale:int = Globals.tileDimenstions.x;
 			var screenPoint:Point = new Point();
-			screenPoint.x = 1 * (Scale / 2) * (mapPoint.x + mapPoint.y);
+			screenPoint.x = 1 * (Scale / 2) * (mapPoint.x + mapPoint.y) ;
 			screenPoint.y = 1 * (Scale / 4) * (mapPoint.y - mapPoint.x + Globals.gridDimensions.y);
 		
 			return screenPoint;
@@ -227,7 +229,8 @@ package IsoGameEngine
 		 */
 		public function snapMouseFollowToTile():Point
 		{
-			var mousePos:Point = getScenePosition(new Point(Globals.stage.mouseX,Globals.stage.mouseY));
+			var mousePos:Point = getScenePosition(new Point(Globals.stage.mouseX + Globals.engine.scene.all_Layers.x,
+															Globals.stage.mouseY + Globals.engine.scene.all_Layers.y));
 			//trace(mousePos,'mousePos');
 			var gridPoint:Point = getScreenToMap(mousePos);
 			//trace(gridPoint,'gridPoint');
