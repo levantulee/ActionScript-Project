@@ -35,6 +35,8 @@ package IsoGameEngine
 			init();
 		}
 		
+		private var marker:_Marker = new _Marker();
+
 		public function init():void
 		{
 			scene = new Scene();
@@ -43,8 +45,8 @@ package IsoGameEngine
             sceneBmp = new Bitmap(sceneBmpData);
 			
 			Globals.stage.addChildAt(sceneBmp, 0);
-			
-			//camera = new Camera();
+						
+			Globals.stage.addChild(marker);
 			
 			scene.addEventListener(Event.ENTER_FRAME, loop);
 		}
@@ -188,38 +190,42 @@ package IsoGameEngine
 		 * Gets the object position inside the map scene. (Screen offset included.)
 		 * @return
 		 */
-		public function getScenePosition(screenObjectPos:Point):Point
+		/*public function getScenePosition(screenObjectPos:Point):Point
 		{
-			var scenePos:Point = new Point(screenObjectPos.x /*- Globals.engine.scene.all_Layers.x*/ + Globals.tileDimenstions.x/2, 
-											screenObjectPos.y /*- Globals.engine.scene.all_Layers.y*/ + Globals.mapCenter.y);
+			var scenePos:Point = new Point(screenObjectPos.x + Globals.tileDimenstions.x/2, 
+											screenObjectPos.y + Globals.mapCenter.y);
 			return scenePos;
-		}
+		}*/
 		
-		public function getMapToScreen(mapPoint:Point ):Point
+		public function getISOToLayer(ISOPoint:Point ):Point
 		{
+			//trace('mapPoint',ISOPoint);
 			var Scale:int = Globals.tileDimenstions.x;
 			var screenPoint:Point = new Point();
-			screenPoint.x = 1 * (Scale / 2) * (mapPoint.x + mapPoint.y) ;
-			screenPoint.y = 1 * (Scale / 4) * (mapPoint.y - mapPoint.x + Globals.gridDimensions.y);
+			screenPoint.x = 1 * (Scale / 2) * (ISOPoint.x + ISOPoint.y) ;
+			screenPoint.y = 1 * (Scale / 4) * (ISOPoint.y - ISOPoint.x + Globals.gridDimensions.y);
+			
+			
 			
 			return screenPoint;
 		}
 		
-		public function getScreenToMap(screenPoint:Point):Point
+		
+		public function getLayerToISO(layerPoint:Point):Point
 		{
 			var Scale:int = Globals.tileDimenstions.x;
-			var mapPoint:Point = new Point();
-			screenPoint.x /= (Scale / 2);
-			screenPoint.y /= (Scale / 4);
+			var newLayerPoint:Point = new Point();
+			layerPoint.x /= (Scale / 2);
+			layerPoint.y /= (Scale / 4);
 
-			mapPoint.x = (screenPoint.x - screenPoint.y) / 2;
-			mapPoint.y = (screenPoint.x + screenPoint.y) / 2;
+			newLayerPoint.x = (layerPoint.x - layerPoint.y) / 2;
+			newLayerPoint.y = (layerPoint.x + layerPoint.y) / 2;
 			
-			//Transpate to correct position to account for offsets.
-			mapPoint.x = Math.floor(1 * (mapPoint.x + Globals.gridDimensions.x));
-			mapPoint.y = Math.floor(1 * (mapPoint.y - Globals.gridDimensions.y));
+			//Translate to correct position to account for offsets.
+			newLayerPoint.x = Math.floor(1 * (newLayerPoint.x + Globals.gridDimensions.x)) - 6;
+			newLayerPoint.y = Math.floor(1 * (newLayerPoint.y - Globals.gridDimensions.y)) + 5;
 			
-			return mapPoint;
+			return newLayerPoint;
 		}
 		
 		
@@ -229,21 +235,36 @@ package IsoGameEngine
 		 * @return
 		 */
 		public function snapToTile(itemPos:Point):Point
-		{
-			
-			
-			var offsetPos:Point = getScenePosition(new Point(itemPos.x /*+ Globals.engine.scene.all_Layers.x*/,
-															itemPos.y /*+ Globals.engine.scene.all_Layers.y*/));
-			itemPos.x -= Globals.engine.scene.all_Layers.x;
-			itemPos.y -= Globals.engine.scene.all_Layers.y;
-			
-			var gridPoint:Point = getScreenToMap(offsetPos);
+		{		
+			var gridPoint:Point = getLayerToISO(itemPos);
 			//trace(gridPoint,'gridPoint');
 			
-			var screenPoint:Point = getMapToScreen(gridPoint)
+			var screenPoint:Point = getISOToLayer(gridPoint)
 				
 			//trace(screenPoint,'screenPoint');
 			return screenPoint;
+		}
+		
+		public function screenToLayerSpace(screenPoint:Point):Point
+		{
+			//trace('screenPoint',screenPoint);
+			screenPoint.x -= Globals.engine.scene.all_Layers.x + Globals.tileDimenstions.x/2;
+			screenPoint.y -= Globals.engine.scene.all_Layers.y - Globals.mapCenter.y/2 /*- Globals.tileDimenstions.y/2*/;
+			
+			
+			return screenPoint;
+		}
+		
+		public function layerToScreenSpace(layerPoint:Point):Point
+		{
+			//trace('layerPoint',layerPoint);
+			layerPoint.x += Globals.engine.scene.all_Layers.x /*- Globals.tileDimenstions.x/2*/;
+			layerPoint.y += Globals.engine.scene.all_Layers.y + Globals.mapCenter.y/2 /*- Globals.tileDimenstions.y/2*/;
+			
+			marker.x = layerPoint.x;
+			marker.y = layerPoint.y;
+			
+			return layerPoint;
 		}
 		
 	}

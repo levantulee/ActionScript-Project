@@ -33,7 +33,7 @@ package
 			Globals.engine = engine;
 			
 			
-			var terrain:BaseTerrain = new BaseTerrain(40, 40, 25, 50, 4,4);
+			var terrain:BaseTerrain = new BaseTerrain(30, 30, 25, 50, 4,4);
 			
 			var camera:Camera = new Camera();
 			

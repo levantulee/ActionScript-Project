@@ -103,7 +103,7 @@ package IsoGameEngine
 				previousPos.y = Globals.stage.mouseY;
 				
 			}
-			Globals.stage.addChild(marker);
+			
 		}
 		
 		

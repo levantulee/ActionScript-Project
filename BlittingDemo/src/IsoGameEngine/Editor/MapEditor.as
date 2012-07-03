@@ -41,6 +41,8 @@ package IsoGameEngine.Editor
 			newItem.setGraphic(new _Item_Tree_01());
 			this.addChild(newItem.graphic);
 			
+			newItem.graphic.alpha = 0.2;
+			
 			Globals.stage.addEventListener(Event.ENTER_FRAME, loop);
 			newItem.graphic.addEventListener(MouseEvent.CLICK,placeOnMap);
 			
@@ -51,10 +53,20 @@ package IsoGameEngine.Editor
 		private function loop(e:Event):void
 		{
 			//FollowMouse
-			var placementPosition:Point = Globals.engine.snapToTile(new Point(Globals.stage.mouseX,Globals.stage.mouseY));
+			var layerPos:Point = Globals.engine.screenToLayerSpace(new Point(Globals.stage.mouseX,Globals.stage.mouseY));
+			trace('Mouse over Tile',Globals.engine.getLayerToISO(layerPos));
+			
+			//trace('layerPos',layerPos);
+			var placementPosition:Point = Globals.engine.snapToTile(layerPos);
+			
+			
+			//var placementPosition:Point = Globals.engine.snapToTile(new Point(Globals.stage.mouseX,Globals.stage.mouseY));
+			//trace('placementPosition',placementPosition);
 			
 			//Snap Pos To Grid
-			newItem.setPosition(placementPosition.x,placementPosition.y);
+			var screenPos:Point = Globals.engine.layerToScreenSpace(placementPosition);
+			newItem.setPosition(screenPos.x,screenPos.y);
+			//trace(newItem.graphic.x,newItem.graphic.y);
 		}
 		
 		private function placeOnMap(e:MouseEvent):void
@@ -62,14 +74,14 @@ package IsoGameEngine.Editor
 			//newItem.graphic.x -= Globals.engine.scene.all_Layers.x;
 			//newItem.graphic.y -= Globals.engine.scene.all_Layers.y;
 			
-			var placementPosition:Point = Globals.engine.getScenePosition(new Point(newItem.graphic.x,newItem.graphic.y));
+			//var placementPosition:Point = Globals.engine.getScenePosition(Globals.engine.screenToLayerSpace(new Point(newItem.graphic.x,newItem.graphic.y)));
 			
 			//placementPosition.x -= Globals.engine.scene.all_Layers.x;
 			//placementPosition.y -= Globals.engine.scene.all_Layers.y;
 			//
-			var tilePos = Globals.engine.getScreenToMap(placementPosition);
+			var tilePos:Point = Globals.engine.getLayerToISO(Globals.engine.screenToLayerSpace(new Point(newItem.graphic.x,newItem.graphic.y)));
 			
-			trace(tilePos);
+			//trace(tilePos);
 			if(0 < tilePos.x && tilePos.x <= Globals.gridDimensions.x &&
 				0 < tilePos.y && tilePos.y <= Globals.gridDimensions.y)
 			{
