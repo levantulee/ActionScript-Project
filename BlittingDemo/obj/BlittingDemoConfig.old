@@ -16,19 +16,19 @@
     </define>
     <define append="true">
       <name>CONFIG::timeStamp</name>
-      <value>'7/2/2012'</value>
+      <value>'7/3/2012'</value>
     </define>
     <verbose-stacktraces>true</verbose-stacktraces>
     <source-path append="true">
-      <path-element>C:\Documents and Settings\srozner.DIGIPEN.EDU\Desktop\BlittingDemo\src</path-element>
+      <path-element>E:\Sandbox\BlittingDemo\src</path-element>
       <path-element>C:\Program Files\FlashDevelop\Library\AS3\classes</path-element>
     </source-path>
     <library-path append="true">
-      <path-element>C:\Documents and Settings\srozner.DIGIPEN.EDU\Desktop\BlittingDemo\lib\Art.swc</path-element>
+      <path-element>E:\Sandbox\BlittingDemo\lib\Art.swc</path-element>
     </library-path>
   </compiler>
   <file-specs>
-    <path-element>C:\Documents and Settings\srozner.DIGIPEN.EDU\Desktop\BlittingDemo\src\Main.as</path-element>
+    <path-element>E:\Sandbox\BlittingDemo\src\Main.as</path-element>
   </file-specs>
   <default-background-color>#FFFFFF</default-background-color>
   <default-frame-rate>60</default-frame-rate>

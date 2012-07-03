@@ -40,10 +40,8 @@ package IsoGameEngine.Editor
 			newItem = new ISOBoardObject();
 			newItem.setGraphic(new _Item_Tree_01());
 			this.addChild(newItem.graphic);
-			//newItem.x = Globals.stage.mouseX;
-			//newItem.y = Globals.stage.mouseY;
+			
 			Globals.stage.addEventListener(Event.ENTER_FRAME, loop);
-//			Globals.stage.addEventListener(MouseEvent.CLICK,placeOnMap);
 			newItem.graphic.addEventListener(MouseEvent.CLICK,placeOnMap);
 			
 			//Mouse.hide();
@@ -53,8 +51,7 @@ package IsoGameEngine.Editor
 		private function loop(e:Event):void
 		{
 			//FollowMouse
-			var placementPosition:Point = Globals.engine.snapMouseFollowToTile();
-			var placementPosition:Point = Globals.engine.snapMouseFollowToTile();
+			var placementPosition:Point = Globals.engine.snapToTile(new Point(Globals.stage.mouseX,Globals.stage.mouseY));
 			
 			//Snap Pos To Grid
 			newItem.setPosition(placementPosition.x,placementPosition.y);
@@ -62,17 +59,23 @@ package IsoGameEngine.Editor
 		
 		private function placeOnMap(e:MouseEvent):void
 		{
+			//newItem.graphic.x -= Globals.engine.scene.all_Layers.x;
+			//newItem.graphic.y -= Globals.engine.scene.all_Layers.y;
 			
 			var placementPosition:Point = Globals.engine.getScenePosition(new Point(newItem.graphic.x,newItem.graphic.y));
-			//trace('place on map',placementPosition);
 			
-			//newItem.setPosition(placementPosition.x,placementPosition.y);
+			//placementPosition.x -= Globals.engine.scene.all_Layers.x;
+			//placementPosition.y -= Globals.engine.scene.all_Layers.y;
+			//
 			var tilePos = Globals.engine.getScreenToMap(placementPosition);
+			
 			trace(tilePos);
 			if(0 < tilePos.x && tilePos.x <= Globals.gridDimensions.x &&
 				0 < tilePos.y && tilePos.y <= Globals.gridDimensions.y)
 			{
 				trace('success');
+				
+				
 				newItem.setTilePosition(tilePos.x,tilePos.y);
 				Globals.engine._AddToScene(newItem);
 				Globals.stage.removeEventListener(Event.ENTER_FRAME, loop);

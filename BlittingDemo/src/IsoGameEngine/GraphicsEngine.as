@@ -68,6 +68,7 @@ package IsoGameEngine
 			//trace('test',Globals.mainLayerGraphicsA[1][20]);
 			item.graphic.x -= Globals.engine.scene.all_Layers.x;
 			item.graphic.y -= Globals.engine.scene.all_Layers.y;
+			
 			scene.main.addChild(item.graphic);
 			sortMainLayerObjects();
 		}
@@ -189,9 +190,9 @@ package IsoGameEngine
 		 */
 		public function getScenePosition(screenObjectPos:Point):Point
 		{
-			var mousePos:Point = new Point(screenObjectPos.x - Globals.engine.scene.all_Layers.x  + Globals.tileDimenstions.x/2, 
-											screenObjectPos.y - Globals.engine.scene.all_Layers.y + Globals.mapCenter.y);
-			return mousePos;
+			var scenePos:Point = new Point(screenObjectPos.x /*- Globals.engine.scene.all_Layers.x*/ + Globals.tileDimenstions.x/2, 
+											screenObjectPos.y /*- Globals.engine.scene.all_Layers.y*/ + Globals.mapCenter.y);
+			return scenePos;
 		}
 		
 		public function getMapToScreen(mapPoint:Point ):Point
@@ -200,7 +201,7 @@ package IsoGameEngine
 			var screenPoint:Point = new Point();
 			screenPoint.x = 1 * (Scale / 2) * (mapPoint.x + mapPoint.y) ;
 			screenPoint.y = 1 * (Scale / 4) * (mapPoint.y - mapPoint.x + Globals.gridDimensions.y);
-		
+			
 			return screenPoint;
 		}
 		
@@ -227,15 +228,20 @@ package IsoGameEngine
 		 * game map for placement.
 		 * @return
 		 */
-		public function snapMouseFollowToTile():Point
+		public function snapToTile(itemPos:Point):Point
 		{
-			var mousePos:Point = getScenePosition(new Point(Globals.stage.mouseX + Globals.engine.scene.all_Layers.x,
-															Globals.stage.mouseY + Globals.engine.scene.all_Layers.y));
-			//trace(mousePos,'mousePos');
-			var gridPoint:Point = getScreenToMap(mousePos);
+			
+			
+			var offsetPos:Point = getScenePosition(new Point(itemPos.x /*+ Globals.engine.scene.all_Layers.x*/,
+															itemPos.y /*+ Globals.engine.scene.all_Layers.y*/));
+			itemPos.x -= Globals.engine.scene.all_Layers.x;
+			itemPos.y -= Globals.engine.scene.all_Layers.y;
+			
+			var gridPoint:Point = getScreenToMap(offsetPos);
 			//trace(gridPoint,'gridPoint');
 			
 			var screenPoint:Point = getMapToScreen(gridPoint)
+				
 			//trace(screenPoint,'screenPoint');
 			return screenPoint;
 		}
