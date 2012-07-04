@@ -27,13 +27,15 @@ package
 		private function init(e:Event = null):void 
 		{
 			removeEventListener(Event.ADDED_TO_STAGE, init);
-			stage.addChild( new Stats() );
+			
+			//stage.addChild( new Stats() );
 			
 			var engine:GraphicsEngine = new GraphicsEngine(stage);
 			Globals.engine = engine;
 			
 			
-			var terrain:BaseTerrain = new BaseTerrain(30, 30, 25, 50, 4,4);
+			/*var terrain:BaseTerrain = new BaseTerrain(24, 24, 25, 50, 4,4);
+			Globals.terrain = terrain;*/
 			
 			var camera:Camera = new Camera();
 			

@@ -17,7 +17,7 @@ package IsoGameEngine.ISOObjects
 		
 		public function init():void
 		{
-			
+			setTilePosition();
 		}
 		
 		public function setPosition(_x:int = 0, _y:int = 0, _z:int = 0):void{

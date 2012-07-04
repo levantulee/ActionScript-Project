@@ -89,16 +89,23 @@ package IsoGameEngine
 				var diffX:int = Globals.stage.mouseX - previousPos.x;
 				var diffY:int = Globals.stage.mouseY - previousPos.y;
 				
-				if(Globals.boardDimensions.x > Globals.stage.stageWidth)
+				
+				//LIMITS - DON"T DELETE
+				/*if(Globals.boardDimensions.x > Globals.stage.stageWidth)
 				{
 					Globals.engine.scene.all_Layers.x += diffX;
-					resetBoundsX();
+					//resetBoundsX();
 				}
 				if(Globals.boardDimensions.y >  Globals.stage.stageHeight)
 				{
 					Globals.engine.scene.all_Layers.y += diffY;
-					resetBoundsY();
-				}
+					//resetBoundsY();
+				}*/
+				
+				//IGNORE LIMITS FOR TESTING ONLY
+				Globals.engine.scene.all_Layers.x += diffX;
+				Globals.engine.scene.all_Layers.y += diffY;
+				
 				previousPos.x = Globals.stage.mouseX;
 				previousPos.y = Globals.stage.mouseY;
 				
@@ -111,10 +118,10 @@ package IsoGameEngine
 		private function resetBoundsX():void
 		{
 			//Rightside Bounds
-			if (Globals.engine.scene.all_Layers.x + Globals.boardDimensions.x <= Globals.stage.stageWidth)
+			if (Globals.engine.scene.all_Layers.x + Globals.boardSize.x <= Globals.stage.stageWidth)
 			{
 				//trace('Rightside');
-				Globals.engine.scene.all_Layers.x = Globals.stage.stageWidth - Globals.boardDimensions.x + spill;
+				Globals.engine.scene.all_Layers.x = Globals.stage.stageWidth - Globals.boardSize.x + spill;
 			}
 			//Leftside Bounds
 			else if (Globals.engine.scene.all_Layers.x >= 0)
@@ -129,10 +136,10 @@ package IsoGameEngine
 			{
 		 	//trace('Globals.engine.scene.all_Layers.y BEFORE',Globals.engine.scene.all_Layers.y);
 			//Bottomside Bounds
-			if (Globals.engine.scene.all_Layers.y + Globals.boardDimensions.y <= Globals.stage.stageHeight)
+			if (Globals.engine.scene.all_Layers.y + Globals.boardSize.y <= Globals.stage.stageHeight)
 			{
 				//trace('Bottomside');
-				Globals.engine.scene.all_Layers.y = Globals.stage.stageHeight - Globals.boardDimensions.y + spill;
+				Globals.engine.scene.all_Layers.y = Globals.stage.stageHeight - Globals.boardSize.y + spill;
 				//trace('Globals.engine.scene.all_Layers.y AFTER',Globals.engine.scene.all_Layers.y);
 			}
 			//Topside Bounds

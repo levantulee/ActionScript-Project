@@ -35,8 +35,8 @@ package IsoGameEngine
 			init();
 		}
 		
-		private var marker:_Marker = new _Marker();
-
+		
+		
 		public function init():void
 		{
 			scene = new Scene();
@@ -45,8 +45,8 @@ package IsoGameEngine
             sceneBmp = new Bitmap(sceneBmpData);
 			
 			Globals.stage.addChildAt(sceneBmp, 0);
-						
-			Globals.stage.addChild(marker);
+			
+			
 			
 			scene.addEventListener(Event.ENTER_FRAME, loop);
 		}
@@ -61,16 +61,7 @@ package IsoGameEngine
 		//ADDING AND REMOVING FROM SCENE
 		public function _AddToScene(item:ISOBoardObject):void
 		{
-			//var arrayPosition:Point = Globals.engine.getScreenToMap(new Point(item.x, item.y+Globals.mapCenter.y));
-			//trace('_AddToScene OnGrid',arrayPosition, 'OnLayer', item.x,item.y);
-			
-			
 			Globals.mainLayerGraphicsA[item.tilePos.x][item.tilePos.y] = item;
-			trace('item.tilePos',item.tilePos);
-			//trace('test',Globals.mainLayerGraphicsA[1][20]);
-			item.graphic.x -= Globals.engine.scene.all_Layers.x;
-			item.graphic.y -= Globals.engine.scene.all_Layers.y;
-			
 			scene.main.addChild(item.graphic);
 			sortMainLayerObjects();
 		}
@@ -127,10 +118,10 @@ package IsoGameEngine
 			}*/
 			var counter:int = 0;
 			
-			for (var i:int = Globals.gridDimensions.y; i > 0; i--)
+			for (var i:int = Globals.gridSize.y; i > 0; i--)
 			{
 				//trace('A',i);
-				var nMax:int = Globals.gridDimensions.y - i;
+				var nMax:int = Globals.gridSize.y - i;
 				//trace('nMax',nMax);
 				for (var j:int = 0; j < nMax+1; j++)
 				{
@@ -142,10 +133,10 @@ package IsoGameEngine
 				}
 			}
 			
-			for (var i:int = Globals.gridDimensions.x; i > 0; i--)
+			for (var i:int = Globals.gridSize.x; i > 0; i--)
 			{
 				//trace('AB',i);
-				var nMax:int = Globals.gridDimensions.x - i;
+				var nMax:int = Globals.gridSize.x - i;
 				//trace('nMax',nMax);
 				for (var j:int = 0; j < nMax; j++)
 				{
@@ -197,37 +188,68 @@ package IsoGameEngine
 			return scenePos;
 		}*/
 		
+		
+		/**
+		 * Receive an ISO point
+		 * @return return a LAYER Point
+		 * */
 		public function getISOToLayer(ISOPoint:Point ):Point
 		{
 			//trace('mapPoint',ISOPoint);
-			var Scale:int = Globals.tileDimenstions.x;
+			var Scale:int = Globals.tileSize.x;
 			var screenPoint:Point = new Point();
 			screenPoint.x = 1 * (Scale / 2) * (ISOPoint.x + ISOPoint.y) ;
-			screenPoint.y = 1 * (Scale / 4) * (ISOPoint.y - ISOPoint.x + Globals.gridDimensions.y);
+			screenPoint.y = 1 * (Scale / 4) * (ISOPoint.y - ISOPoint.x);
 			
+			return screenPoint;
+		}
+		
+		/**
+		 * Receive a LAYER point
+		 * @return return an ISO Point
+		 * */
+		public function getLayerToISO(layerPoint:Point):Point
+		{
+			//Shift Layer Point by half a tile in X to account for offset
+			layerPoint.x += Globals.tileSize.x/2;
+			
+			var Scale:int = Globals.tileSize.x;
+			var ISOPoint:Point = new Point();
+			layerPoint.x /= (Scale / 2);
+			layerPoint.y /= (Scale / 4);
+
+			ISOPoint.x = (layerPoint.x - layerPoint.y) / 2;
+			ISOPoint.y = (layerPoint.x + layerPoint.y) / 2;
+			
+			//Translate to correct position to account for offsets.
+			ISOPoint.x = Math.floor(1 * (ISOPoint.x ));
+			ISOPoint.y = Math.floor(1 * (ISOPoint.y ));
+			
+			return ISOPoint;
+		}
+		
+		
+		
+		
+		public function screenToLayerSpace(screenPoint:Point):Point
+		{
+			//trace('screenPoint',screenPoint);
+			screenPoint.x -= Globals.engine.scene.all_Layers.x /*+ Globals.tileDimenstions.x/2*/;
+			screenPoint.y -= Globals.engine.scene.all_Layers.y /*- Globals.mapCenter.y/2*/ /*- Globals.tileDimenstions.y/2*/;
 			
 			
 			return screenPoint;
 		}
 		
-		
-		public function getLayerToISO(layerPoint:Point):Point
+		public function layerToScreenSpace(layerPoint:Point):Point
 		{
-			var Scale:int = Globals.tileDimenstions.x;
-			var newLayerPoint:Point = new Point();
-			layerPoint.x /= (Scale / 2);
-			layerPoint.y /= (Scale / 4);
-
-			newLayerPoint.x = (layerPoint.x - layerPoint.y) / 2;
-			newLayerPoint.y = (layerPoint.x + layerPoint.y) / 2;
+			//trace('layerPoint',layerPoint);
+			layerPoint.x += Globals.engine.scene.all_Layers.x /*- Globals.tileDimenstions.x/2*/;
+			layerPoint.y += Globals.engine.scene.all_Layers.y /*+ Globals.mapCenter.y/2*/ /*- Globals.tileDimenstions.y/2*/;
 			
-			//Translate to correct position to account for offsets.
-			newLayerPoint.x = Math.floor(1 * (newLayerPoint.x + Globals.gridDimensions.x)) - 6;
-			newLayerPoint.y = Math.floor(1 * (newLayerPoint.y - Globals.gridDimensions.y)) + 5;
 			
-			return newLayerPoint;
+			return layerPoint;
 		}
-		
 		
 		/**
 		 * Get a clear position of a clicked tile and return its absolute value for inside the
@@ -240,31 +262,9 @@ package IsoGameEngine
 			//trace(gridPoint,'gridPoint');
 			
 			var screenPoint:Point = getISOToLayer(gridPoint)
-				
+			
 			//trace(screenPoint,'screenPoint');
 			return screenPoint;
-		}
-		
-		public function screenToLayerSpace(screenPoint:Point):Point
-		{
-			//trace('screenPoint',screenPoint);
-			screenPoint.x -= Globals.engine.scene.all_Layers.x + Globals.tileDimenstions.x/2;
-			screenPoint.y -= Globals.engine.scene.all_Layers.y - Globals.mapCenter.y/2 /*- Globals.tileDimenstions.y/2*/;
-			
-			
-			return screenPoint;
-		}
-		
-		public function layerToScreenSpace(layerPoint:Point):Point
-		{
-			//trace('layerPoint',layerPoint);
-			layerPoint.x += Globals.engine.scene.all_Layers.x /*- Globals.tileDimenstions.x/2*/;
-			layerPoint.y += Globals.engine.scene.all_Layers.y + Globals.mapCenter.y/2 /*- Globals.tileDimenstions.y/2*/;
-			
-			marker.x = layerPoint.x;
-			marker.y = layerPoint.y;
-			
-			return layerPoint;
 		}
 		
 	}
