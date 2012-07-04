@@ -2,8 +2,6 @@ package IsoGameEngine
 {
 	import IsoGameEngine.ISOObjects.ISOBoardObject;
 	
-	import adobe.utils.CustomActions;
-	
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
 	import flash.display.Sprite;
@@ -27,7 +25,6 @@ package IsoGameEngine
 		private var sceneBmp:Bitmap;
 		private var sceneBmpData:BitmapData;
 		
-		//private var camera:Camera;
 		
 		public function GraphicsEngine(stage:Stage) 
 		{
@@ -46,15 +43,16 @@ package IsoGameEngine
 			
 			Globals.stage.addChildAt(sceneBmp, 0);
 			
-			
-			
 			scene.addEventListener(Event.ENTER_FRAME, loop);
+			
+			
 		}
 		
 		private function loop(e:Event):void
 		{
 			sceneBmpData.fillRect(sceneBmpData.rect,0);
             sceneBmpData.draw(scene);
+			
 		}
 		
 		

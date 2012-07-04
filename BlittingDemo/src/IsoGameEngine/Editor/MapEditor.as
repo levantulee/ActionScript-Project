@@ -7,6 +7,8 @@ package IsoGameEngine.Editor
 	import flash.events.*;
 	import flash.geom.Point;
 	import flash.ui.Mouse;
+	import flash.utils.getDefinitionByName;
+	import flash.utils.getQualifiedClassName;
 
 	public class MapEditor extends _MapEditor
 	{
@@ -32,8 +34,8 @@ package IsoGameEngine.Editor
 			pave.addEventListener(MouseEvent.CLICK, mouseClick);
 			
 			
-			
-			marker.graphic = new _Marker();
+			//POSITIONING TEST
+			/*marker.graphic = new _Marker();
 			marker.setTilePosition(2,2);
 			//TEST SUCCESS: Get the LAYER position using the 0,0,0 preset grid ISO position of the marker. result should be 0,0
 			var tempPos:Point = Globals.engine.getISOToLayer(new Point(marker.tilePos.x, marker.tilePos.y));
@@ -49,7 +51,7 @@ package IsoGameEngine.Editor
 			var tempPos:Point = Globals.engine.getISOToLayer(new Point(marker.tilePos.x, marker.tilePos.y));
 			marker.graphic.x = tempPos.x;
 			marker.graphic.y = tempPos.y;//TEST TEST
-			trace('tempPos',tempPos);
+			trace('tempPos',tempPos);*/
 			
 			
 			
@@ -91,8 +93,6 @@ package IsoGameEngine.Editor
 			this._txt_mouseOverGridTile.text = String(Globals.engine.getLayerToISO(mouseLayerPos));
 			this._txt_mouseOverStageLayerPos.text = String(new Point(Globals.stage.mouseX,Globals.stage.mouseY));
 			
-			
-			
 		}
 		
 		
@@ -104,12 +104,16 @@ package IsoGameEngine.Editor
 			}
 			
 		}
+		
+		
 		private function makeNewMap(e:MouseEvent):void
 		{
 			removeAllTiles();
 			makeMap();
 			
 		}
+		
+		//MOVE MAP CREATION TO ENGINE
 		private function makeMap():void
 		{
 			var terrain:BaseTerrain = new BaseTerrain(int(this._txt_set_tilesX.text), int(this._txt_set_tilesY.text), 25, 50, 4,4);
@@ -125,13 +129,15 @@ package IsoGameEngine.Editor
 			selectItem(e.target);
 		}
 		
-		private var newItem:*;
+		private var newItem:ISOBoardObject;
 		
-		private function selectItem(whatItem:*):void
+		private function selectItem(whatItem:Object):void
 		{
-			//trace('selectNewItem');
+			//Get the passed in object, get its class name, get the definition of it for type, cast to class
+			var TemplateObj:Class = flash.utils.getDefinitionByName(flash.utils.getQualifiedClassName(whatItem)) as Class;
+
 			newItem = new ISOBoardObject();
-			newItem.setGraphic(new _Item_Tree_01());
+			newItem.setGraphic(new TemplateObj());
 			newItem.graphic.x = Globals.stage.mouseX;
 			newItem.graphic.y = Globals.stage.mouseY;
 			

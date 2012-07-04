@@ -1,11 +1,9 @@
 package 
 {
 	import IsoGameEngine.Camera;
-	import IsoGameEngine.GraphicsEngine;
-	
 	import IsoGameEngine.Editor.MapEditor;
-	
 	import IsoGameEngine.GameBoard.BaseTerrain;
+	import IsoGameEngine.GraphicsEngine;
 	
 	import flash.display.Sprite;
 	import flash.events.Event;
@@ -18,6 +16,13 @@ package
 
 	public class Main extends Sprite 
 	{
+
+		
+		
+		
+		private var key:KeyObject;
+		
+		
 		public function Main():void 
 		{
 			if (stage) init();
@@ -33,19 +38,40 @@ package
 			var engine:GraphicsEngine = new GraphicsEngine(stage);
 			Globals.engine = engine;
 			
-			
-			/*var terrain:BaseTerrain = new BaseTerrain(24, 24, 25, 50, 4,4);
-			Globals.terrain = terrain;*/
-			
 			var camera:Camera = new Camera();
-			
 			
 			var gui:_GUI_Border = new _GUI_Border;
 			stage.addChild(gui);
 			
-			var editor:MapEditor = new MapEditor();
-			stage.addChild(editor);
 			
+			editor = new MapEditor();
+			editor.visible = false;
+			
+			Globals.stage.addChild(editor)
+				
+			this.addEventListener(Event.ENTER_FRAME, loop);
+			key = new KeyObject(Globals.stage);
+		}
+		
+		private function loop(e:Event):void
+		{
+			if(key.isDown(key.E))
+			{
+				toggleEditor();
+			}
+		}
+		
+		private var editor:MapEditor;
+		private function toggleEditor():void
+		{
+			
+			if(editor.visible)
+			{
+				editor.visible = false;
+			} else {
+				editor.visible = true;
+			}
+				
 		}
 		
 	}
