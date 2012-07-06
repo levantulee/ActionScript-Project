@@ -29,21 +29,11 @@ package IsoGameEngine.GameBoard
 			mapWidth = gridWidth * tileWidth;
 			mapHeight = gridHeight * tileHeight;
 			
-			//mapHeight = Math.ceil(gridWidth / 10) + 1;
-			//mapWidth = Math.ceil(gridHeight / 10) + 1;
-			
-			
 			init();
 		}
 		
 		private function SetFieldDimensions():void
 		{
-			
-			
-			//boardDimensions.x = tilesX * tileWidth;
-			//boardDimensions.y = tilesY * tileHeight;
-			
-			
 			Globals.boardSize = new Point(mapWidth,mapHeight);
 			
 			Globals.gridSize = new Point(gridWidth,gridHeight);
@@ -57,17 +47,6 @@ package IsoGameEngine.GameBoard
 		{
 			SetFieldDimensions();
 			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
 			//A 2D Array of Grid Height and Width
 			var gridA:Array = new Array();
 			for ( var width:int = 0; width < gridWidth; width++) {
@@ -77,63 +56,46 @@ package IsoGameEngine.GameBoard
 					gridA[width].push(null);
 				}				
 			}
-			Globals.backgroundLayerGraphicsA = gridA;
-			Globals.mainLayerGraphicsA = gridA;
+			Globals.backgroundLayerGraphicsA = clone(gridA);
+			Globals.mainLayerGraphicsA = clone(gridA);
+			Globals.foregroundLayerGraphicsA = clone(gridA);
+			Globals.allGraphicLayersA.push(Globals.backgroundLayerGraphicsA,Globals.mainLayerGraphicsA,Globals.foregroundLayerGraphicsA);
 			
+			import flash.utils.ByteArray;
+			function clone(source:Object):*
+			{
+				var myBA:ByteArray = new ByteArray();
+				myBA.writeObject(source);
+				myBA.position = 0;
+				return(myBA.readObject());
+			}
 			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			//TO center the grid onf the overall map
-			var startPosXShift:Number = 0;//tileWidth/2;
+			var startPosXShift:Number = 0;
 			var startPosYShift:Number = 0;
 			
 			for ( var i:int = 0; i < gridWidth; i++) {
 				for ( var j:int = 0; j < gridHeight; j++) {
 					var newTile:_TilesOutline = new _TilesOutline();
 					
-					newTile.x +=  i * tileWidth / 2 + j * tileWidth / 2 + startPosXShift;//- gridWidth*tileWidth/2;
-					newTile.y -=  i * tileHeight / 2 + j * tileHeight / 2 - startPosYShift;//- gridHeight*tileHeight/2;
-					
-					if(i == 0 && j == 0) trace(newTile.x,newTile.y);
+					newTile.x +=  i * tileWidth / 2 + j * tileWidth / 2 + startPosXShift;
+					newTile.y -=  i * tileHeight / 2 + j * tileHeight / 2 - startPosYShift;
 					
 					Globals.backgroundLayerGraphicsA[i].push(newTile);
 					Globals.engine._AddToBackground(newTile);
 				}
 				startPosYShift +=  tileHeight;
 			}
+		}
+		
+		private function makeBackground():void
+		{
 			
-			trace('MAP INIT Post Tile Init',Globals.engine.scene.all_Layers.x,Globals.engine.scene.all_Layers.y,
-				Globals.engine.scene.background.x,Globals.engine.scene.background.y);
-			
-			
-			//add trees to each corner
-			/*var tree1:_Item_Tree_01 = new _Item_Tree_01();
-			Globals.engine._AddToScene(tree1);
-			var tree2:_Item_Tree_01 = new _Item_Tree_01();
-			tree2.x = (mapWidth-1)*background.width;
-			Globals.engine._AddToScene(tree2);
-			var tree3:_Item_Tree_01 = new _Item_Tree_01();
-			tree3.y = (mapHeight-1)*background.height;
-			Globals.engine._AddToScene(tree3);
-			var tree4:_Item_Tree_01 = new _Item_Tree_01();
-			tree4.x = (mapWidth-1)*background.width;
-			tree4.y = (mapHeight-1)*background.height;
-			Globals.engine._AddToScene(tree4);*/
 		}
 		
 		
 		
 		public function clearMap():void
 		{
-			
 			for ( var i:int = 0; i < Globals.backgroundLayerGraphicsA.length; i++) {
 				for ( var j:int = 0; j < Globals.backgroundLayerGraphicsA[i].length; j++) {
 					if(Globals.backgroundLayerGraphicsA[i][j] is _TilesOutline){

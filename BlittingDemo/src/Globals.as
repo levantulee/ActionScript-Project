@@ -27,9 +27,12 @@ package
 		/** Reference to the current terrain */
 		public static var terrain:BaseTerrain;
 		
+		
 		/**  Main Graphics Layer Grid Objects */
-		public static var mainLayerGraphicsA:Array = new Array();
-		public static var backgroundLayerGraphicsA = new Array();
+		public static var backgroundLayerGraphicsA:Array;// = new Array(new Array());
+		public static var mainLayerGraphicsA:Array;// = new Array(new Array());
+		public static var foregroundLayerGraphicsA:Array;// = new Array(new Array());
+		public static var allGraphicLayersA:Array = new Array();
 		
 		public static var gameObjects:Array = new Array();
 		public static var gameObjectNoCol:Array = new Array();

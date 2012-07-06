@@ -45,7 +45,7 @@ package
 			
 			
 			editor = new MapEditor();
-			editor.visible = false;
+			//editor.visible = false;
 			
 			Globals.stage.addChild(editor)
 				

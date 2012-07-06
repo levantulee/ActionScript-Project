@@ -10,16 +10,20 @@ package IsoGameEngine
 	import flash.events.*;
 	import flash.geom.Point;
 
-	/**
+	/****************************************************************************************
 	 * ...
 	 * @author Simon
 	 * 
 	 * USE this to add in the main class:
-	 * var engine:GraphicsEngine = new GraphicsEngine(stage);
-		Globals.engine = engine;
 	 * 
-	 * Use ADD to Scene and Remove from Scene to add to render pipeline.
-	 */
+	 * 
+	 * var engine:GraphicsEngine = new GraphicsEngine(stage);
+	 * Globals.engine = engine;
+	 * 
+	 * 
+	 * Use ADD to Scene and Remove from Scene to add to render pipeline. See detailed descriptions
+	 * for all funcitons below.
+	 ****************************************************************************************/
 	public class GraphicsEngine
 	{
 		public var scene:Scene;
@@ -34,7 +38,13 @@ package IsoGameEngine
 		}
 		
 		
-		
+		/****************************************************************************************
+		 * INIT
+		 * 1. Generate the Scene Layers to place all sprites
+		 * 2. Prepare the BMP Data to render the scene into
+		 * 3. Place a bitmap on the stage that will display said bitmap data
+		 * 4. Start the rendering loop
+		 ****************************************************************************************/
 		public function init():void
 		{
 			scene = new Scene();
@@ -47,26 +57,22 @@ package IsoGameEngine
 			scene.addEventListener(Event.ENTER_FRAME, loop);
 		}
 		
+		
+		/****************************************************************************************
+		 * RENDER the SCENE into the STAGE BMP's BMPDATA Object
+		 ****************************************************************************************/
 		private function loop(e:Event):void
 		{
 			sceneBmpData.fillRect(sceneBmpData.rect,0);
             sceneBmpData.draw(scene);
 		}
 		
-		//Check if the tile is free
-		public function _CheckTileOccupied(tilePos:Point3):Boolean
-		{
-			if(Globals.mainLayerGraphicsA[tilePos.x][tilePos.y] == undefined)
-			{
-				return false;
-			}
-			else 
-			{
-				return true;
-			}
-		}
 		
-		//ADDING AND REMOVING FROM SCENE
+		
+		/****************************************************************************************
+		 * Add a ISO object into the MAIN SCENE Layer
+		 * @return FALSE if placement failed due to already Occupied
+		 ****************************************************************************************/
 		public function _AddToScene(item:ISOBoardObject):Boolean
 		{
 			if(Globals.mainLayerGraphicsA[item.tilePos.x][item.tilePos.y] == undefined)
@@ -83,102 +89,120 @@ package IsoGameEngine
 			
 		}
 		
-		public function _RemoveFromScene(item:Sprite):void
+		/****************************************************************************************
+		 * REMOVE an ISO object from the MAIN SCENE Layer
+		 ****************************************************************************************/
+		public function _RemoveFromScene(item:ISOBoardObject):void
 		{
-			scene.main.removeChild(item);
+			scene.main.removeChild(item.graphic);
 		}
 		
+		/****************************************************************************************
+		 * Add a ISO object into the BACKGROUND Layer
+		 * @return FALSE if placement failed due to already Occupied
+		 ****************************************************************************************/
 		public function _AddToBackground(item:*):void
 		{
 			scene.background.addChild(item);
 		}
 		
+		/****************************************************************************************
+		 * REMOVE an ISO object from the BACKGROUND Layer
+		 ****************************************************************************************/
 		public function _RemoveFromBackground(item:Sprite):void
 		{
 			scene.background.removeChild(item);
 		}
 		
+		/****************************************************************************************
+		 * Add a ISO object into the FOREGROUND Layer
+		 * @return FALSE if placement failed due to already Occupied
+		 ****************************************************************************************/
 		public function _AddToForeground(item:*):void
 		{
 			scene.foreground.addChild(item);
 		}
 		
+		/****************************************************************************************
+		 * REMOVE an ISO object from the FOREGROUND Layer
+		 ****************************************************************************************/
 		public function _RemoveFromForeground(item:Sprite):void
 		{
 			scene.foreground.removeChild(item);
 		}
 		
-		/**
-		 * SORTING OF OBJECTS IN MAIN ART LAYER
-		 */
+		/****************************************************************************************
+		 * Depth Sorts items on grid from Bottom Corner (Front) to Top Corner (Back) to get 
+		 * correct depth overlaps.
+		 * Sort for All Layers Tracked Arrays
+		 * ***************************************************************************************/
 		private function sortMainLayerObjects():void
 		{
-			var depthA:Array = new Array();
-			var zCounter:int = 0;//Globals.gridSize.x*Globals.gridSize.y;
 			
 			
-			for (var x:int = Globals.gridSize.x-1; x > 0; x--)
-			//for (var x:int = 1; x < Globals.gridSize.x; x++)
+			var x:int,y:int,nMax:int;
+			var isoObject:ISOBoardObject;
+			
+			var displayListA:Array;
+			var displayLayer:Sprite;
+			
+			for (var i:int = 0; i < Globals.allGraphicLayersA.length; i++)
 			{
-				//trace('AB',i);
-				var nMax:int = Globals.gridSize.x - x;
-				//trace('nMax',nMax);
-				for (var y:int = 0; y < nMax; y++)
+				
+				var depthA:Array = new Array();
+				var zCounter:int = 0;
+				
+				//SelectDisplayList
+				displayListA = Globals.allGraphicLayersA[i];
+				if(displayListA == null)
 				{
-					//trace('B',i,j);
-					if(Globals.mainLayerGraphicsA[x+y][y] !=  undefined)
+					break;
+				}
+				//SelectDisplayLayer
+				displayLayer = Sprite(Globals.engine.scene.all_Layers.getChildAt(i));
+			
+				//Sort from top corner to middle
+				for (x = Globals.gridSize.x-1; x > 0; x--) 
+				{
+					nMax = Globals.gridSize.x - x;
+					for (y = 0; y < nMax; y++)
 					{
-						trace('First Half',x+y,y,zCounter);
-						var isoObject:ISOBoardObject = Globals.mainLayerGraphicsA[x+y][y];
-						isoObject.setZ(zCounter);
-						Globals.engine.scene.main.setChildIndex(isoObject.graphic,isoObject.tilePos.z)
-
-						zCounter++;
+						if(displayListA[x+y][y] !=  undefined)
+						{
+							//trace('First Half',x+y,y,zCounter);
+							isoObject = displayListA[x+y][y];
+							isoObject.setZ(zCounter);
+							displayLayer.setChildIndex(isoObject.graphic,isoObject.tilePos.z);
+							zCounter++;
+						}
 					}
-					
 				}
-			}
-			
-			
-			//for (var y:int = Globals.gridSize.y; y > 0; y--)
-			for (var y:int = 0; y < Globals.gridSize.y; y++)
-			{
-				//trace('A',i);
-				var nMax:int = Globals.gridSize.y - y;
-				//trace('nMax',nMax);
-				for (var x:int = 0; x < nMax; x++)
+				//Sort from Middle to Bottom Corner
+				for (y = 0; y < Globals.gridSize.y; y++)
 				{
-					//trace('A',i,j);
-					if(Globals.mainLayerGraphicsA[x][y+x] !=  undefined){
-						trace('First Half',x,y+x,zCounter);
-						var isoObject:ISOBoardObject = Globals.mainLayerGraphicsA[x][y+x];
-						isoObject.setZ(zCounter);
-						Globals.engine.scene.main.setChildIndex(isoObject.graphic,isoObject.tilePos.z)
-						zCounter++;
+					nMax = Globals.gridSize.y - y;
+					for (x = 0; x < nMax; x++)
+					{
+						if(displayListA[x][y+x] !=  undefined){
+							//trace('First Half',x,y+x,zCounter);
+							isoObject = displayListA[x][y+x];
+							isoObject.setZ(zCounter);
+							displayLayer.setChildIndex(isoObject.graphic,isoObject.tilePos.z);
+							zCounter++;
+						}
 					}
-					else
-						;//trace('A undefined');
-					
-					
 				}
 			}
-			
-			
-			
-			
-			
-			
-			
-		}//
+		}
 		
 		
 		
 		
 		
-		/**
+		/****************************************************************************************
 		 * Receive an ISO point
 		 * @return return a LAYER Point
-		 * */
+		 * ***************************************************************************************/
 		public function getISOToLayer(ISOPoint:Point ):Point
 		{
 			//trace('mapPoint',ISOPoint);
@@ -190,10 +214,10 @@ package IsoGameEngine
 			return screenPoint;
 		}
 		
-		/**
+		/****************************************************************************************
 		 * Receive a LAYER point
 		 * @return return an ISO Point
-		 * */
+		 * ***************************************************************************************/
 		public function getLayerToISO(layerPoint:Point):Point
 		{
 			//Shift Layer Point by half a tile in X to account for offset
@@ -216,7 +240,10 @@ package IsoGameEngine
 		
 		
 		
-		
+		/****************************************************************************************
+		 * Convert a Point from Screen Layer to Blitting Layer
+		 * @return Point on Layer
+		 * **************************************************************************************/
 		public function screenToLayerSpace(screenPoint:Point):Point
 		{
 			//trace('screenPoint',screenPoint);
@@ -227,6 +254,10 @@ package IsoGameEngine
 			return screenPoint;
 		}
 		
+		/****************************************************************************************
+		 * Convert a Point from Blitting Layer to Screen Layer
+		 * @return Point on Screen
+		 * **************************************************************************************/
 		public function layerToScreenSpace(layerPoint:Point):Point
 		{
 			//trace('layerPoint',layerPoint);
@@ -237,11 +268,11 @@ package IsoGameEngine
 			return layerPoint;
 		}
 		
-		/**
+		/****************************************************************************************
 		 * Get a clear position of a clicked tile and return its absolute value for inside the
 		 * game map for placement.
-		 * @return
-		 */
+		 * @return Point on Screen napped to underlying tile
+		 * **************************************************************************************/
 		public function snapToTile(itemPos:Point):Point
 		{		
 			var gridPoint:Point = getLayerToISO(itemPos);
