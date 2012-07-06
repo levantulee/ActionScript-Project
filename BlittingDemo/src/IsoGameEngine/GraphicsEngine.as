@@ -117,8 +117,8 @@ package IsoGameEngine
 			var zCounter:int = 0;//Globals.gridSize.x*Globals.gridSize.y;
 			
 			
-			//for (var x:int = Globals.gridSize.x; x > 0; x--)
-			for (var x:int = 0; x < Globals.gridSize.x; x++)
+			for (var x:int = Globals.gridSize.x-1; x > 0; x--)
+			//for (var x:int = 1; x < Globals.gridSize.x; x++)
 			{
 				//trace('AB',i);
 				var nMax:int = Globals.gridSize.x - x;
@@ -128,11 +128,11 @@ package IsoGameEngine
 					//trace('B',i,j);
 					if(Globals.mainLayerGraphicsA[x+y][y] !=  undefined)
 					{
-						//trace('sort B',y,x+y,Globals.mainLayerGraphicsA[x+y][y]);
+						trace('First Half',x+y,y,zCounter);
 						var isoObject:ISOBoardObject = Globals.mainLayerGraphicsA[x+y][y];
 						isoObject.setZ(zCounter);
 						Globals.engine.scene.main.setChildIndex(isoObject.graphic,isoObject.tilePos.z)
-						trace('First Half',zCounter);
+
 						zCounter++;
 					}
 					
@@ -150,18 +150,10 @@ package IsoGameEngine
 				{
 					//trace('A',i,j);
 					if(Globals.mainLayerGraphicsA[x][y+x] !=  undefined){
-						/*trace('sort',x,y+x,Globals.mainLayerGraphicsA[x][y+x]);
-						//trace(Globals.gridSize.x*Globals.gridSize.y);
-						trace(1+x);
-						trace((Globals.gridSize.x-(y+x)),(x+1));
-						
-						Globals.mainLayerGraphicsA[x][y+x].setZ(Globals.gridSize.x*Globals.gridSize.y - (1+x) * ((Globals.gridSize.x-(y+x))-(x+1)));
-						trace('Z',Globals.mainLayerGraphicsA[x][y+x].tilePos.z);
-						*/
+						trace('First Half',x,y+x,zCounter);
 						var isoObject:ISOBoardObject = Globals.mainLayerGraphicsA[x][y+x];
 						isoObject.setZ(zCounter);
 						Globals.engine.scene.main.setChildIndex(isoObject.graphic,isoObject.tilePos.z)
-						trace('First Half',zCounter);
 						zCounter++;
 					}
 					else

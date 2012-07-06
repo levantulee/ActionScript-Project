@@ -220,6 +220,8 @@ package IsoGameEngine.Editor
 				//Remove Glow Effect
 				OutlineFX.removeOutlineFX(newItem.graphic);
 				
+				//OutlineFX.addOutlineFX(newItem.graphic,0x000000,1,2,10);
+				
 				var layerPos:Point = Globals.engine.screenToLayerSpace(new Point(newItem.graphic.x,newItem.graphic.y));
 				
 				newItem.graphic.x = layerPos.x;
