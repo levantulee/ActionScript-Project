@@ -9,6 +9,7 @@ package IsoGameEngine.ISOObjects
 		
 		public var graphic:Sprite;
 		public var position:Point3;
+		public var tilePos:Point3;
 		
 		public function ISOBoardObject()
 		{
@@ -26,9 +27,13 @@ package IsoGameEngine.ISOObjects
 			graphic.y = position.y;
 		}
 		
-		public var tilePos:Point3;
+		
 		public function setTilePosition(_x:int = 0, _y:int = 0, _z:int = 0):void{
 			tilePos = new Point3(_x,_y,_z);
+		}
+		public function setZ(_z:int):void
+		{
+			tilePos.z = _z;
 		}
 		
 		public function setGraphic(whatGraphic:Sprite):void

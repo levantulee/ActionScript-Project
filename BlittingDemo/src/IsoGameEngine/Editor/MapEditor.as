@@ -2,6 +2,8 @@ package IsoGameEngine.Editor
 {
 	import IsoGameEngine.GameBoard.BaseTerrain;
 	import IsoGameEngine.ISOObjects.ISOBoardObject;
+	import IsoGameEngine.Tools.Point3;
+	import IsoGameEngine.SpecialEffects.OutlineFX;
 	
 	import flash.display.Sprite;
 	import flash.events.*;
@@ -19,9 +21,19 @@ package IsoGameEngine.Editor
 			init();
 		}
 		
+		
+		private var tileOccupied:_TilesOccupied = new _TilesOccupied();
+		private var tileFree:_TilesFree = new _TilesFree();
+		
 		public function init():void
 		{
 			makeMap();
+			
+			
+			tileOccupied.visible = false;
+			addChild(tileOccupied);
+			tileFree.visible = false;
+			
 			
 			var tree:_Item_Tree_01 = new _Item_Tree_01();
 			addChild(tree);
@@ -116,12 +128,9 @@ package IsoGameEngine.Editor
 		//MOVE MAP CREATION TO ENGINE
 		private function makeMap():void
 		{
-			var terrain:BaseTerrain = new BaseTerrain(int(this._txt_set_tilesX.text), int(this._txt_set_tilesY.text), 25, 50, 4,4);
+			var terrain:BaseTerrain = new BaseTerrain(/*int(this._txt_set_tilesX.text), int(this._txt_set_tilesY.text),*/10,10, 25, 50, 4,4);
 			Globals.terrain = terrain;
 		}
-		
-		
-		
 		
 		private function mouseClick(e:MouseEvent):void
 		{
@@ -142,13 +151,11 @@ package IsoGameEngine.Editor
 			newItem.graphic.y = Globals.stage.mouseY;
 			
 			Globals.stage.addChild(newItem.graphic);
-			
-			newItem.graphic.alpha = 0.5;
-			
+						
 			Globals.stage.addEventListener(Event.ENTER_FRAME, loop);
 			newItem.graphic.addEventListener(MouseEvent.CLICK,placeOnMap);
 			
-			//Mouse.hide();
+			Mouse.hide();
 			//Make New Instance, and follow mouse, snap to grid
 			//Listen for Click on Stage, place in position
 		}
@@ -174,7 +181,33 @@ package IsoGameEngine.Editor
 			newItem.graphic.x = tempPosScreen.x;
 			newItem.graphic.y = tempPosScreen.y;//TEST TEST
 			
-			
+			checkTileOccupied(newItem);
+		}
+		
+		private function checkTileOccupied(newItem:ISOBoardObject):void
+		{
+			if(0 <= newItem.tilePos.x && newItem.tilePos.x < Globals.gridSize.x &&
+				0 <= newItem.tilePos.y && newItem.tilePos.y < Globals.gridSize.y)
+			{
+				tileOccupied.x = newItem.graphic.x;
+				tileOccupied.y  = newItem.graphic.y;
+				var isOccupied:Boolean = Globals.engine._CheckTileOccupied(newItem.tilePos);
+				tileOccupied.visible = true;
+				if(isOccupied == false)//not occupied
+				{
+					tileOccupied.gotoAndStop(isOccupied);
+					OutlineFX.addOutlineFX(newItem.graphic,0x00FF00,1,5,1);
+				}
+				else
+				{
+					tileOccupied.gotoAndStop(isOccupied);
+					OutlineFX.addOutlineFX(newItem.graphic,0xFF0000,1,5,1);
+				}
+			}
+			else
+			{
+				tileOccupied.visible = false;
+			}
 		}
 		
 		private function placeOnMap(e:MouseEvent):void
@@ -184,17 +217,26 @@ package IsoGameEngine.Editor
 			{
 				trace('success');
 				//Set Graphics to use Layer Position
+				//Remove Glow Effect
+				OutlineFX.removeOutlineFX(newItem.graphic);
+				
 				var layerPos:Point = Globals.engine.screenToLayerSpace(new Point(newItem.graphic.x,newItem.graphic.y));
 				
 				newItem.graphic.x = layerPos.x;
 				newItem.graphic.y = layerPos.y;
 				
-				Globals.engine._AddToScene(newItem);
+				var sucessAdd:Boolean = Globals.engine._AddToScene(newItem);
+				if(!sucessAdd)
+				{
+					Globals.stage.removeChild(newItem.graphic);
+					trace('spaceOccupied');
+				}
 				Globals.stage.removeEventListener(Event.ENTER_FRAME, loop);
 				newItem.graphic.removeEventListener(MouseEvent.CLICK,placeOnMap);
 				newItem = null;
-				
 				Mouse.show();
+				tileOccupied.visible = false;
+				
 			} else {
 				trace('out of bounds');
 			}

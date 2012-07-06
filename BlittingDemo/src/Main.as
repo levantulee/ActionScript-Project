@@ -33,7 +33,7 @@ package
 		{
 			removeEventListener(Event.ADDED_TO_STAGE, init);
 			
-			//stage.addChild( new Stats() );
+			stage.addChild( new Stats() );
 			
 			var engine:GraphicsEngine = new GraphicsEngine(stage);
 			Globals.engine = engine;

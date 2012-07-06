@@ -1,6 +1,7 @@
 package IsoGameEngine 
 {
 	import IsoGameEngine.ISOObjects.ISOBoardObject;
+	import IsoGameEngine.Tools.Point3;
 	
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
@@ -44,24 +45,42 @@ package IsoGameEngine
 			Globals.stage.addChildAt(sceneBmp, 0);
 			
 			scene.addEventListener(Event.ENTER_FRAME, loop);
-			
-			
 		}
 		
 		private function loop(e:Event):void
 		{
 			sceneBmpData.fillRect(sceneBmpData.rect,0);
             sceneBmpData.draw(scene);
-			
 		}
 		
+		//Check if the tile is free
+		public function _CheckTileOccupied(tilePos:Point3):Boolean
+		{
+			if(Globals.mainLayerGraphicsA[tilePos.x][tilePos.y] == undefined)
+			{
+				return false;
+			}
+			else 
+			{
+				return true;
+			}
+		}
 		
 		//ADDING AND REMOVING FROM SCENE
-		public function _AddToScene(item:ISOBoardObject):void
+		public function _AddToScene(item:ISOBoardObject):Boolean
 		{
-			Globals.mainLayerGraphicsA[item.tilePos.x][item.tilePos.y] = item;
-			scene.main.addChild(item.graphic);
-			sortMainLayerObjects();
+			if(Globals.mainLayerGraphicsA[item.tilePos.x][item.tilePos.y] == undefined)
+			{
+				Globals.mainLayerGraphicsA[item.tilePos.x][item.tilePos.y] = item;
+				scene.main.addChild(item.graphic);
+				sortMainLayerObjects();	
+				return true;
+			}
+			else 
+			{
+				return false;
+			}
+			
 		}
 		
 		public function _RemoveFromScene(item:Sprite):void
@@ -94,97 +113,74 @@ package IsoGameEngine
 		 */
 		private function sortMainLayerObjects():void
 		{
-			/*
-			//Go to last in Y array
-			var totalTiles:int = Globals.gridDimensions.x * Globals.gridDimensions.y /2;
+			var depthA:Array = new Array();
+			var zCounter:int = 0;//Globals.gridSize.x*Globals.gridSize.y;
 			
-			while(totalTiles > 0)
-			{
-			 //go to first in X array and go down N positions. Start at N = 1;
-				var n:int = 0; //Column
-				while(n > 0)
-				{
-					var m:int = 1; //Row
-					while(m <= m + 1)
-					{
-						Globals.mainLayerGraphicsA[m][n];
-						trace('sorting',m,n);
-					}
-					n++;
-				}
-				totalTiles--;
-			}*/
-			var counter:int = 0;
 			
-			for (var i:int = Globals.gridSize.y; i > 0; i--)
-			{
-				//trace('A',i);
-				var nMax:int = Globals.gridSize.y - i;
-				//trace('nMax',nMax);
-				for (var j:int = 0; j < nMax+1; j++)
-				{
-					//trace('A',i,j);
-					if(Globals.mainLayerGraphicsA[j][i+j] !=  undefined)
-					;//trace('sort',j,i+j,Globals.mainLayerGraphicsA[j][i+j]);
-					
-					counter++;
-				}
-			}
-			
-			for (var i:int = Globals.gridSize.x; i > 0; i--)
+			//for (var x:int = Globals.gridSize.x; x > 0; x--)
+			for (var x:int = 0; x < Globals.gridSize.x; x++)
 			{
 				//trace('AB',i);
-				var nMax:int = Globals.gridSize.x - i;
+				var nMax:int = Globals.gridSize.x - x;
 				//trace('nMax',nMax);
-				for (var j:int = 0; j < nMax; j++)
+				for (var y:int = 0; y < nMax; y++)
 				{
 					//trace('B',i,j);
-					if(Globals.mainLayerGraphicsA[i+j][j] !=  undefined)
-					;//trace('sort B',j,i+j,Globals.mainLayerGraphicsA[i+j][j]);
-					counter++;
+					if(Globals.mainLayerGraphicsA[x+y][y] !=  undefined)
+					{
+						//trace('sort B',y,x+y,Globals.mainLayerGraphicsA[x+y][y]);
+						var isoObject:ISOBoardObject = Globals.mainLayerGraphicsA[x+y][y];
+						isoObject.setZ(zCounter);
+						Globals.engine.scene.main.setChildIndex(isoObject.graphic,isoObject.tilePos.z)
+						trace('First Half',zCounter);
+						zCounter++;
+					}
+					
 				}
 			}
 			
-			//trace(counter, Globals.gridDimensions.x*Globals.gridDimensions.y);
 			
-			
-			
-			
-			//var prevIndex:int = 0;
-			//Globals.mainLayerGraphicsA
-			/*if (Globals.mainLayerGraphicsA.length > 1) {
-				for ( var i:int = 0; i < Globals.mainLayerGraphicsA.length-1; i++) {
-					if (Globals.mainLayerGraphicsA[i] != null)
-					{
-						var index1:int = scene.main.getChildIndex(Globals.mainLayerGraphicsA[i]);
-						var index2:int = scene.main.getChildIndex(Globals.mainLayerGraphicsA[i + 1]);
-						if (index1 > index2)
-						{
-							scene.main.swapChildrenAt(index1, index2);
-						}
+			//for (var y:int = Globals.gridSize.y; y > 0; y--)
+			for (var y:int = 0; y < Globals.gridSize.y; y++)
+			{
+				//trace('A',i);
+				var nMax:int = Globals.gridSize.y - y;
+				//trace('nMax',nMax);
+				for (var x:int = 0; x < nMax; x++)
+				{
+					//trace('A',i,j);
+					if(Globals.mainLayerGraphicsA[x][y+x] !=  undefined){
+						/*trace('sort',x,y+x,Globals.mainLayerGraphicsA[x][y+x]);
+						//trace(Globals.gridSize.x*Globals.gridSize.y);
+						trace(1+x);
+						trace((Globals.gridSize.x-(y+x)),(x+1));
 						
-				
+						Globals.mainLayerGraphicsA[x][y+x].setZ(Globals.gridSize.x*Globals.gridSize.y - (1+x) * ((Globals.gridSize.x-(y+x))-(x+1)));
+						trace('Z',Globals.mainLayerGraphicsA[x][y+x].tilePos.z);
+						*/
+						var isoObject:ISOBoardObject = Globals.mainLayerGraphicsA[x][y+x];
+						isoObject.setZ(zCounter);
+						Globals.engine.scene.main.setChildIndex(isoObject.graphic,isoObject.tilePos.z)
+						trace('First Half',zCounter);
+						zCounter++;
 					}
+					else
+						;//trace('A undefined');
 					
 					
 				}
-			}//*/
+			}
+			
+			
+			
+			
+			
+			
 			
 		}//
 		
 		
 		
-		//POSITIONING ROUTINES
-		/**
-		 * Gets the object position inside the map scene. (Screen offset included.)
-		 * @return
-		 */
-		/*public function getScenePosition(screenObjectPos:Point):Point
-		{
-			var scenePos:Point = new Point(screenObjectPos.x + Globals.tileDimenstions.x/2, 
-											screenObjectPos.y + Globals.mapCenter.y);
-			return scenePos;
-		}*/
 		
 		
 		/**
