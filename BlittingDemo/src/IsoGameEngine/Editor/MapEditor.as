@@ -114,7 +114,6 @@ package IsoGameEngine.Editor
 			{
 				Globals.terrain.clearMap();
 			}
-			
 		}
 		
 		

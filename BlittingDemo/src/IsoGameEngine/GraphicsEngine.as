@@ -109,7 +109,7 @@ package IsoGameEngine
 		/****************************************************************************************
 		 * REMOVE an ISO object from the BACKGROUND Layer
 		 ****************************************************************************************/
-		public function _RemoveFromBackground(item:Sprite):void
+		public function _RemoveFromBackground(item:*):void
 		{
 			scene.background.removeChild(item);
 		}
