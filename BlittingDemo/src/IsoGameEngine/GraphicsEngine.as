@@ -101,17 +101,17 @@ package IsoGameEngine
 		 * Add a ISO object into the BACKGROUND Layer
 		 * @return FALSE if placement failed due to already Occupied
 		 ****************************************************************************************/
-		public function _AddToBackground(item:*):void
+		public function _AddToBackground(item:ISOBoardObject):void
 		{
-			scene.background.addChild(item);
+			scene.background.addChild(item.graphic);
 		}
 		
 		/****************************************************************************************
 		 * REMOVE an ISO object from the BACKGROUND Layer
 		 ****************************************************************************************/
-		public function _RemoveFromBackground(item:*):void
+		public function _RemoveFromBackground(item:ISOBoardObject):void
 		{
-			scene.background.removeChild(item);
+			scene.background.removeChild(item.graphic);
 		}
 		
 		/****************************************************************************************
@@ -146,19 +146,21 @@ package IsoGameEngine
 			var displayListA:Array;
 			var displayLayer:Sprite;
 			
-			for (var i:int = 0; i < Globals.allGraphicLayersA.length; i++)
+			for (var i:int = 0; i < Globals.engine.scene.all_Layers.numChildren; i++)
 			{
 				
 				var depthA:Array = new Array();
 				var zCounter:int = 0;
-				
+								
 				//SelectDisplayList
+				trace('allGraphicLayersA',Globals.allGraphicLayersA.length);
 				displayListA = Globals.allGraphicLayersA[i];
 				if(displayListA == null)
 				{
 					break;
 				}
 				//SelectDisplayLayer
+	
 				displayLayer = Sprite(Globals.engine.scene.all_Layers.getChildAt(i));
 			
 				//Sort from top corner to middle

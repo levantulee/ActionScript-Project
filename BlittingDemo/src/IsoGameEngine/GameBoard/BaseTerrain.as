@@ -1,5 +1,7 @@
 package IsoGameEngine.GameBoard 
 {
+	import IsoGameEngine.ISOObjects.ISOBoardObject;
+	
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
 	import flash.display.DisplayObject;
@@ -64,11 +66,12 @@ package IsoGameEngine.GameBoard
 		{
 			//A 2D Array of Grid Height and Width
 			var gridA:Array = new Array();
-			for ( var width:int = 0; width < gridWidth; width++) {
+			
+			for ( var x:int = 0; x < gridWidth; x++) {
 				var heightA:Array = new Array();
 				gridA.push(heightA);
-				for ( var height:int = 0; height < gridHeight; height++) {
-					gridA[width].push(null);
+				for ( var y:int = 0; y < gridHeight; y++) {
+					gridA[x].push(null);
 				}				
 			}
 			
@@ -92,15 +95,18 @@ package IsoGameEngine.GameBoard
 			var startPosXShift:Number = 0;
 			var startPosYShift:Number = 0;
 			
-			for ( var i:int = 0; i < gridWidth; i++) {
-				for ( var j:int = 0; j < gridHeight; j++) {
+			
+			for ( var y:int = 0; y < gridHeight; y++) {
+				for ( var x:int = 0; x < gridWidth; x++) {
 					var newTile:_TilesOutline = new _TilesOutline();
 					
-					newTile.x +=  i * tileWidth / 2 + j * tileWidth / 2 + startPosXShift;
-					newTile.y -=  i * tileHeight / 2 + j * tileHeight / 2 - startPosYShift;
+					newTile.x +=  x * tileWidth / 2 + y * tileWidth / 2 + startPosXShift;
+					newTile.y -=  x * tileHeight / 2 + y * tileHeight / 2 - startPosYShift;
 					
-					Globals.backgroundLayerGraphicsA[i][j] = newTile;
-					Globals.engine._AddToBackground(newTile);
+					var tempISOObject:ISOBoardObject = new ISOBoardObject();
+					tempISOObject.setGraphic(newTile);
+					Globals.backgroundLayerGraphicsA[x][y] = tempISOObject;
+					Globals.engine._AddToBackground(tempISOObject);
 				}
 				startPosYShift +=  tileHeight;
 			}
@@ -134,16 +140,16 @@ package IsoGameEngine.GameBoard
 				bgSize.y = Globals.stage.stageHeight/tileHeight;
 			}*/
 			
-			for ( var i:int = 0; i < bgSize.y; i++) {
-				for ( var j:int = 0; j < bgSize.x; j++) {
+			for ( var y:int = 0; y < bgSize.y; y++) {
+				for ( var x:int = 0; x < bgSize.x; x++) {
 					var newTile:_TilesGrass = new _TilesGrass();
 					
-					if(i % 2 == 0){
-						newTile.x +=  j * tileWidth;
+					if(y % 2 == 0){
+						newTile.x +=  x * tileWidth;
 					} else {
-						newTile.x +=  j * tileWidth + tileWidth/2;
+						newTile.x +=  x * tileWidth + tileWidth/2;
 					}
-					newTile.y +=  i * tileHeight / 2;
+					newTile.y +=  y * tileHeight / 2;
 					
 					bgSprite.addChild(newTile);					
 				}
@@ -202,14 +208,20 @@ package IsoGameEngine.GameBoard
 		
 		public function clearMap():void
 		{
-			for ( var i:int = Globals.backgroundLayerGraphicsA.length-1; i >= 0 ; i--) {
-				for ( var j:int = Globals.backgroundLayerGraphicsA[i].length-1; j >= 0 ; j--) {
+			var x:int, y:int;
+			
+			for (x = Globals.backgroundLayerGraphicsA.length-1; x >= 0 ; x--) {
+				for (y = Globals.backgroundLayerGraphicsA[x].length-1; y >= 0 ; y--) {
 					
-					if(Globals.backgroundLayerGraphicsA[i][j] is DisplayObject){
-						Globals.engine._RemoveFromBackground(Globals.backgroundLayerGraphicsA[i][j]);
+					if(Globals.backgroundLayerGraphicsA[x][y] is ISOBoardObject){
+						Globals.engine._RemoveFromBackground(Globals.backgroundLayerGraphicsA[x][y]);
 					}
-					Globals.backgroundLayerGraphicsA[i].splice(j,1);
+					Globals.backgroundLayerGraphicsA[x].splice(y,1);
 				}
+			}
+			
+			for (x = Globals.allGraphicLayersA.length-1; x >= 0 ; x--) {
+				Globals.allGraphicLayersA.pop();
 			}
 		}
 		

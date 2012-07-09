@@ -27,12 +27,12 @@ package IsoGameEngine
 			if(0 <= refISOObject.tilePos.x && refISOObject.tilePos.x < Globals.gridSize.x &&
 				0 <= refISOObject.tilePos.y && refISOObject.tilePos.y < Globals.gridSize.y)
 			{
-				//trace('Inside Bounds');
+				trace('Inside Bounds',refISOObject.tilePos,Globals.gridSize);
 				return false;
 			}
 			else
 			{
-				//trace('Outside Bounds');
+				trace('Outside Bounds',refISOObject.tilePos,Globals.gridSize);
 				_HideTileOccupiedMarker();
 				SetIsoObjectOutlineColor(refISOObject,0xFF0000);
 				return true;
