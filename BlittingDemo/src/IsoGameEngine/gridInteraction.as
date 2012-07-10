@@ -27,12 +27,12 @@ package IsoGameEngine
 			if(0 <= refISOObject.tilePos.x && refISOObject.tilePos.x < Globals.gridSize.x &&
 				0 <= refISOObject.tilePos.y && refISOObject.tilePos.y < Globals.gridSize.y)
 			{
-				trace('Inside Bounds',refISOObject.tilePos,Globals.gridSize);
+				//trace('Inside Bounds',refISOObject.tilePos,Globals.gridSize);
 				return false;
 			}
 			else
 			{
-				trace('Outside Bounds',refISOObject.tilePos,Globals.gridSize);
+				//trace('Outside Bounds',refISOObject.tilePos,Globals.gridSize);
 				_HideTileOccupiedMarker();
 				SetIsoObjectOutlineColor(refISOObject,0xFF0000);
 				return true;
@@ -125,7 +125,8 @@ package IsoGameEngine
 		{
 			var mouseLayerPos:Point = Globals.engine.screenToLayerSpace(new Point(Globals.stage.mouseX,Globals.stage.mouseY)); //trace('mouseLayerPos',mouseLayerPos);
 			var mouseIsoPos:Point = Globals.engine.getLayerToISO(mouseLayerPos); //trace('mouseIsoPos',mouseIsoPos);
-			refISOObject.setTilePosition(mouseIsoPos.x,mouseIsoPos.y); //trace('newItem.tilePos',newItem.tilePos);
+			
+			refISOObject.setTilePosition(mouseIsoPos.x,mouseIsoPos.y, -1*(mouseIsoPos.x-Globals.gridSize.x)+mouseIsoPos.y); //trace('newItem.tilePos',newItem.tilePos);
 			
 			//SET the screen position again with the new iso position. Look out for offset
 			var tempPosLayer:Point = Globals.engine.getISOToLayer(new Point(refISOObject.tilePos.x, refISOObject.tilePos.y));
@@ -146,7 +147,6 @@ package IsoGameEngine
 			
 			refISOObject.graphic.x = screenPos.x;
 			refISOObject.graphic.x = screenPos.y;
-			
 		}
 		
 		/****************************************************************************************
@@ -155,7 +155,6 @@ package IsoGameEngine
 		 ****************************************************************************************/
 		public static function _PlaceIsoItem(refISOObject:ISOBoardObject):Boolean
 		{
-			
 			_HideTileOccupiedMarker();
 			
 			if(!_CheckTileOccupied(refISOObject)){
@@ -168,7 +167,6 @@ package IsoGameEngine
 				
 				refISOObject.graphic.x = layerPos.x;
 				refISOObject.graphic.y = layerPos.y;
-				
 				
 				Globals.engine._AddToScene(refISOObject);
 				

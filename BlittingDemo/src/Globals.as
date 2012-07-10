@@ -29,10 +29,13 @@ package
 		
 		
 		/**  Main Graphics Layer Grid Objects */
+		//The first 4 arrays are temp now, to be replaced with the new system for sorting.
 		public static var backgroundLayerGraphicsA:Array;// = new Array(new Array());
 		public static var mainLayerGraphicsA:Array;// = new Array(new Array());
 		public static var foregroundLayerGraphicsA:Array;// = new Array(new Array());
 		public static var allGraphicLayersA:Array = new Array();
+		
+		public static var displayListA:Array = new Array();//NEW SORTING ARRAY
 		
 		public static var gameObjects:Array = new Array();
 		public static var gameObjectNoCol:Array = new Array();

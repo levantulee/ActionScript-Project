@@ -27,6 +27,10 @@ package IsoGameEngine.Editor
 		
 		public function init():void
 		{
+			
+			this._txt_set_tilesX.text = String(10);
+			this._txt_set_tilesY.text = String(10);
+			
 			makeMap();
 			
 			
@@ -174,8 +178,6 @@ package IsoGameEngine.Editor
 		
 		private function placeOnMap(e:MouseEvent):void
 		{
-			
-			
 			if(!gridInteraction._CheckTileOutOfBounds(newItem))
 			{
 				//trace('attemptPlacement');

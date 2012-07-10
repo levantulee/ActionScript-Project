@@ -77,9 +77,12 @@ package IsoGameEngine
 		{
 			if(Globals.mainLayerGraphicsA[item.tilePos.x][item.tilePos.y] == undefined)
 			{
-				Globals.mainLayerGraphicsA[item.tilePos.x][item.tilePos.y] = item;
+				//trace('item pos', item.tilePos.z);
+				zSortDisplayList(item);
+				
+				//Globals.mainLayerGraphicsA[item.tilePos.x][item.tilePos.y] = item;
 				scene.main.addChild(item.graphic);
-				sortMainLayerObjects();	
+				//sortMainLayerObjects();	
 				return true;
 			}
 			else 
@@ -130,6 +133,68 @@ package IsoGameEngine
 		{
 			scene.foreground.removeChild(item);
 		}
+		
+		
+/****************************************************************************************
+ * TEST SORTING ROUTINE
+ ****************************************************************************************/
+		private function zSortDisplayList(item:ISOBoardObject):void
+		{
+			if (Globals.displayListA.length > 0)
+			{
+				var first:int = 0, last:int = Globals.displayListA.length-1;
+				
+				for (var i:int = 0; i < 10/*Globals.displayListA.length*/; i++)
+				{
+					var midPoint:int = Math.floor((first + last) / 2);
+					
+					if (first >= last-1) {
+						Globals.displayListA.splice(i, 0, item);
+						trace('OVER', i, first, last);
+						sort();
+						break;
+					}
+					
+					if(item.tilePos.z == Globals.displayListA[midPoint].tilePos.z)
+					{
+						Globals.displayListA.splice(i, 0, item);
+						trace('MATCH', i, first, last);
+						sort();
+						break;
+					}
+					else if (item.tilePos.z < Globals.displayListA[midPoint].tilePos.z)
+					{
+						first = first;
+						last = midPoint;
+						trace('above', i, first, last);
+					}
+					else (item.tilePos.z > Globals.displayListA[midPoint].tilePos.z)
+					{
+						first = midPoint;
+						last = last;
+						trace('below',i, first, last);
+					}
+				}
+				
+				trace('Globals.displayListA.length', Globals.displayListA.length);
+			} else {
+				Globals.displayListA.push(item);
+			}
+			
+			function sort(){
+				for (var z:int = 0; z < Globals.displayListA.length; z++)
+				{
+					trace(Globals.displayListA[z].tilePos.z);
+					//Globals.engine.scene.main.setChildIndex(Globals.displayListA[z].graphic, z);
+				}
+			}
+		}
+		
+		
+		
+		
+		
+		
 		
 		/****************************************************************************************
 		 * Depth Sorts items on grid from Bottom Corner (Front) to Top Corner (Back) to get 
@@ -182,7 +247,7 @@ package IsoGameEngine
 				//Sort from Middle to Bottom Corner
 				for (y = 0; y < Globals.gridSize.y; y++)
 				{
-					nMax = Globals.gridSize.y - y;
+					nMax = Globals.gridSize.x - x;
 					for (x = 0; x < nMax; x++)
 					{
 						if(displayListA[x][y+x] !=  undefined){
